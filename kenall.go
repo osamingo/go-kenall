@@ -148,8 +148,6 @@ func (v *Version) UnmarshalJSON(b []byte) error {
 		return fmt.Errorf("kenall: failed to parse date with RFC3339 Date: %w", err)
 	}
 
-	vv := Version(t)
-	v = &vv
-
+	*v = Version(t)
 	return nil
 }

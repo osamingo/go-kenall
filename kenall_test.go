@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/osamingo/go-kenall"
 )
@@ -39,6 +40,33 @@ func TestClient_Get(t *testing.T) {
 	defer srv.Close()
 
 	// TODO: write test cases
+}
+
+func TestVersion_UnmarshalJSON(t *testing.T) {
+	t.Parallel()
+
+	cases := map[string]struct {
+		give      string
+		want      time.Time
+		wantError bool
+	}{
+		"Give 2020-11-30": {give: "2020-11-30", want: time.Date(2020, 11, 30, 0, 0, 0, 0, time.UTC), wantError: false},
+		"Give 20201130":   {give: "20201130", want: time.Time{}, wantError: true},
+	}
+
+	for name, c := range cases {
+		c := c
+		t.Run(name, func(t *testing.T) {
+			v := &kenall.Version{}
+			err := v.UnmarshalJSON([]byte(c.give))
+			if err == nil == c.wantError {
+				t.Errorf("give: %v, want: %v", err, c.wantError)
+			}
+			if !c.want.Equal(time.Time(*v)) {
+				t.Errorf("give: %v, want: %v", time.Time(*v), c.want)
+			}
+		})
+	}
 }
 
 func runTestingServer(t *testing.T) *httptest.Server {
