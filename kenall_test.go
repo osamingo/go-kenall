@@ -1,6 +1,7 @@
 package kenall_test
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -25,8 +26,10 @@ func TestNewClient(t *testing.T) {
 	for name, c := range cases {
 		c := c
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			_, err := kenall.NewClient(c.token, c.opts...)
-			if err != c.want {
+			if !errors.Is(c.want, err) {
 				t.Errorf("give: %v, want: %v", err, c.want)
 			}
 		})
@@ -57,6 +60,8 @@ func TestVersion_UnmarshalJSON(t *testing.T) {
 	for name, c := range cases {
 		c := c
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			v := &kenall.Version{}
 			err := v.UnmarshalJSON([]byte(c.give))
 			if err == nil == c.wantError {
@@ -107,13 +112,15 @@ func runTestingServer(t *testing.T) *httptest.Server {
 }`
 
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		token := strings.Fields(r.Header.Get("Authorization"))
 		if len(token) != 2 || token[1] != "good_token" {
 			return
 		}
-
-		w.Write([]byte(data))
+		{
+			if _, err := w.Write([]byte(data)); err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+		}
 	})
 
 	return httptest.NewServer(h)

@@ -99,7 +99,6 @@ func WithEndpoint(endpoint string) Option {
 }
 
 func (cli *Client) Get(ctx context.Context, postalCode string) (*Response, error) {
-
 	if _, err := strconv.Atoi(postalCode); err != nil || len(postalCode) != 7 {
 		return nil, ErrInvalidArgument
 	}
@@ -122,15 +121,15 @@ func (cli *Client) Get(ctx context.Context, postalCode string) (*Response, error
 	}()
 
 	switch res.StatusCode {
-	case 401:
+	case http.StatusUnauthorized:
 		return nil, ErrUnauthorized
-	case 403:
+	case http.StatusForbidden:
 		return nil, ErrForbidden
-	case 404:
+	case http.StatusNotFound:
 		return nil, ErrNotFound
-	case 500:
+	case http.StatusInternalServerError:
 		return nil, ErrInternalServerError
-	case 502:
+	case http.StatusBadGateway:
 		return nil, ErrBadGateway
 	}
 
@@ -147,7 +146,7 @@ func (v *Version) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return fmt.Errorf("kenall: failed to parse date with RFC3339 Date: %w", err)
 	}
-
 	*v = Version(t)
+
 	return nil
 }
