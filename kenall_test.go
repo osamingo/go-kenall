@@ -3,8 +3,11 @@ package kenall_test
 import (
 	"context"
 	"errors"
+	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -107,6 +110,22 @@ func TestVersion_UnmarshalJSON(t *testing.T) {
 			}
 		})
 	}
+}
+
+func ExampleClient_Get() {
+	cli, err := kenall.NewClient(os.Getenv("KENALL_AUTHORIZATION_TOKEN"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := cli.Get(context.Background(), "1000001")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	addr := res.Addresses[0]
+	fmt.Println(addr.Prefecture, addr.City, addr.Town)
+	// Output: 東京都 千代田区 千代田
 }
 
 func runTestingServer(t *testing.T) *httptest.Server {
