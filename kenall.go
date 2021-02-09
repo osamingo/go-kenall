@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	Endpoint          = "https://api.kenall.jp/v1/"
+	Endpoint          = "https://api.kenall.jp/v1"
 	RFC3339DateFormat = "2006-01-02"
 )
 
@@ -103,7 +103,7 @@ func (cli *Client) Get(ctx context.Context, postalCode string) (*Response, error
 		return nil, ErrInvalidArgument
 	}
 
-	const path = "postalcode/"
+	const path = "/postalcode/"
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+path+postalCode, nil)
 	if err != nil {
 		return nil, fmt.Errorf("kenall: failed to generate http request: %w", err)
@@ -141,8 +141,11 @@ func (cli *Client) Get(ctx context.Context, postalCode string) (*Response, error
 	return &resp, nil
 }
 
-func (v *Version) UnmarshalJSON(b []byte) error {
-	t, err := time.Parse(RFC3339DateFormat, string(b))
+func (v *Version) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		return nil
+	}
+	t, err := time.Parse(`"`+RFC3339DateFormat+`"`, string(data))
 	if err != nil {
 		return fmt.Errorf("kenall: failed to parse date with RFC3339 Date: %w", err)
 	}

@@ -1,6 +1,7 @@
 package kenall_test
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -40,9 +41,43 @@ func TestClient_Get(t *testing.T) {
 	t.Parallel()
 
 	srv := runTestingServer(t)
-	defer srv.Close()
+	t.Cleanup(func() {
+		srv.Close()
+	})
 
-	// TODO: write test cases
+	cases := map[string]struct {
+		token        string
+		postalcode   string
+		wantError    error
+		wantJISX0402 string
+	}{
+		"Normal case":           {token: "opencollector", postalcode: "1008105", wantError: nil, wantJISX0402: "13101"},
+		"Not found":             {token: "opencollector", postalcode: "0000000", wantError: kenall.ErrNotFound, wantJISX0402: ""},
+		"Unauthorized":          {token: "bad_token", postalcode: "0000000", wantError: kenall.ErrUnauthorized, wantJISX0402: ""},
+		"Forbidden":             {token: "opencollector", postalcode: "4030000", wantError: kenall.ErrForbidden, wantJISX0402: ""},
+		"Internal server error": {token: "opencollector", postalcode: "5000000", wantError: kenall.ErrInternalServerError, wantJISX0402: ""},
+		"Bad gateway":           {token: "opencollector", postalcode: "5020000", wantError: kenall.ErrBadGateway, wantJISX0402: ""},
+	}
+
+	for name, c := range cases {
+		c := c
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			cli, err := kenall.NewClient(c.token, kenall.WithEndpoint(srv.URL))
+			if err != nil {
+				t.Error(err)
+			}
+
+			res, err := cli.Get(context.Background(), c.postalcode)
+			if !errors.Is(c.wantError, err) {
+				t.Errorf("give: %v, want: %v", err, c.wantError)
+			}
+			if res != nil && res.Addresses[0].JISX0402 != c.wantJISX0402 {
+				t.Errorf("give: %v, want: %v", res.Addresses[0].JISX0402, c.wantJISX0402)
+			}
+		})
+	}
 }
 
 func TestVersion_UnmarshalJSON(t *testing.T) {
@@ -53,8 +88,8 @@ func TestVersion_UnmarshalJSON(t *testing.T) {
 		want      time.Time
 		wantError bool
 	}{
-		"Give 2020-11-30": {give: "2020-11-30", want: time.Date(2020, 11, 30, 0, 0, 0, 0, time.UTC), wantError: false},
-		"Give 20201130":   {give: "20201130", want: time.Time{}, wantError: true},
+		"Give 2020-11-30": {give: `"2020-11-30"`, want: time.Date(2020, 11, 30, 0, 0, 0, 0, time.UTC), wantError: false},
+		"Give 20201130":   {give: `"20201130"`, want: time.Time{}, wantError: true},
 	}
 
 	for name, c := range cases {
@@ -111,17 +146,28 @@ func runTestingServer(t *testing.T) *httptest.Server {
   ]
 }`
 
-	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := strings.Fields(r.Header.Get("Authorization"))
-		if len(token) != 2 || token[1] != "good_token" {
+
+		if len(token) != 2 || token[1] != "opencollector" {
+			w.WriteHeader(http.StatusUnauthorized)
+
 			return
 		}
-		{
+
+		switch r.URL.Path {
+		case "/postalcode/1008105":
 			if _, err := w.Write([]byte(data)); err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 			}
+		case "/postalcode/4030000":
+			w.WriteHeader(http.StatusForbidden)
+		case "/postalcode/5000000":
+			w.WriteHeader(http.StatusInternalServerError)
+		case "/postalcode/5020000":
+			w.WriteHeader(http.StatusBadGateway)
+		default:
+			w.WriteHeader(http.StatusNotFound)
 		}
-	})
-
-	return httptest.NewServer(h)
+	}))
 }
