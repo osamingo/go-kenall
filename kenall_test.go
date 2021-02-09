@@ -60,6 +60,7 @@ func TestClient_Get(t *testing.T) {
 		wantJISX0402 string
 	}{
 		"Normal case":           {token: "opencollector", postalcode: "1008105", wantError: nil, wantJISX0402: "13101"},
+		"Invalid postalcode":    {token: "opencollector", postalcode: "alphabet", wantError: kenall.ErrInvalidArgument, wantJISX0402: ""},
 		"Not found":             {token: "opencollector", postalcode: "0000000", wantError: kenall.ErrNotFound, wantJISX0402: ""},
 		"Unauthorized":          {token: "bad_token", postalcode: "0000000", wantError: kenall.ErrUnauthorized, wantJISX0402: ""},
 		"Forbidden":             {token: "opencollector", postalcode: "4030000", wantError: kenall.ErrForbidden, wantJISX0402: ""},
