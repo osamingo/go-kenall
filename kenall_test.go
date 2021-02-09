@@ -23,8 +23,9 @@ func TestNewClient(t *testing.T) {
 		opts  []kenall.Option
 		want  error
 	}{
-		"Give token":  {token: "dummy", opts: nil, want: nil},
-		"Empty token": {token: "", opts: nil, want: kenall.ErrInvalidArgument},
+		"Empty token":         {token: "", opts: nil, want: kenall.ErrInvalidArgument},
+		"Give token":          {token: "dummy", opts: nil, want: nil},
+		"Give token and opts": {token: "dummy", opts: []kenall.Option{kenall.WithEndpoint(""), kenall.WithHTTPClient(nil)}, want: nil},
 	}
 
 	for name, c := range cases {
@@ -32,9 +33,13 @@ func TestNewClient(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			_, err := kenall.NewClient(c.token, c.opts...)
+			cli, err := kenall.NewClient(c.token, c.opts...)
 			if !errors.Is(c.want, err) {
 				t.Errorf("give: %v, want: %v", err, c.want)
+			}
+
+			if len(c.opts) != 0 && cli.Endpoint != "" && cli.HTTPClient != nil {
+				t.Error("option is not reflected")
 			}
 		})
 	}
@@ -93,6 +98,7 @@ func TestVersion_UnmarshalJSON(t *testing.T) {
 	}{
 		"Give 2020-11-30": {give: `"2020-11-30"`, want: time.Date(2020, 11, 30, 0, 0, 0, 0, time.UTC), wantError: false},
 		"Give 20201130":   {give: `"20201130"`, want: time.Time{}, wantError: true},
+		"Give null":       {give: `null`, want: time.Time{}, wantError: false},
 	}
 
 	for name, c := range cases {
