@@ -131,8 +131,11 @@ func ExampleClient_Get() {
 	}
 
 	addr := res.Addresses[0]
+	fmt.Println(time.Time(res.Version).IsZero())
 	fmt.Println(addr.Prefecture, addr.City, addr.Town)
-	// Output: 東京都 千代田区 千代田
+	// Output:
+	// false
+	// 東京都 千代田区 千代田
 }
 
 func runTestingServer(t *testing.T) *httptest.Server {

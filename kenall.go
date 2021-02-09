@@ -34,7 +34,7 @@ type (
 	}
 	Option   func(*Client)
 	Response struct {
-		Version   *Version   `json:"version"`
+		Version   Version    `json:"version"`
 		Addresses []*Address `json:"data"`
 	}
 	Version time.Time
