@@ -18,3 +18,4 @@ issues:
         - lll
         - funlen
         - paralleltest
+        - forbidigo
