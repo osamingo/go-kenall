@@ -34,5 +34,7 @@ jobs:
           go-version: ${{ matrix.go }}
       - name: Test Go Code
         run: go test -v -race -covermode=atomic -coverprofile=coverage.txt ./...
+        env:
+          KENALL_AUTHORIZATION_TOKEN: ${{ secrets.KENALL_AUTHORIZATION_TOKEN }}
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
