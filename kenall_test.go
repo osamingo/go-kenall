@@ -58,20 +58,22 @@ func TestClient_Get(t *testing.T) {
 	cases := map[string]struct {
 		endpoint     string
 		token        string
+		ctx          context.Context
 		postalcode   string
 		checkAsError bool
 		wantError    error
 		wantJISX0402 string
 	}{
-		"Normal case":           {endpoint: srv.URL, token: "opencollector", postalcode: "1008105", checkAsError: false, wantError: nil, wantJISX0402: "13101"},
-		"Invalid postalcode":    {endpoint: srv.URL, token: "opencollector", postalcode: "alphabet", checkAsError: false, wantError: kenall.ErrInvalidArgument, wantJISX0402: ""},
-		"Not found":             {endpoint: srv.URL, token: "opencollector", postalcode: "0000000", checkAsError: false, wantError: kenall.ErrNotFound, wantJISX0402: ""},
-		"Unauthorized":          {endpoint: srv.URL, token: "bad_token", postalcode: "0000000", checkAsError: false, wantError: kenall.ErrUnauthorized, wantJISX0402: ""},
-		"Forbidden":             {endpoint: srv.URL, token: "opencollector", postalcode: "4030000", checkAsError: false, wantError: kenall.ErrForbidden, wantJISX0402: ""},
-		"Internal server error": {endpoint: srv.URL, token: "opencollector", postalcode: "5000000", checkAsError: false, wantError: kenall.ErrInternalServerError, wantJISX0402: ""},
-		"Bad gateway":           {endpoint: srv.URL, token: "opencollector", postalcode: "5020000", checkAsError: false, wantError: kenall.ErrBadGateway, wantJISX0402: ""},
-		"Wrong endpoint":        {endpoint: "", token: "opencollector", postalcode: "5020000", checkAsError: true, wantError: &url.Error{}, wantJISX0402: ""},
-		"Wrong response":        {endpoint: srv.URL, token: "opencollector", postalcode: "0000001", checkAsError: true, wantError: &json.MarshalerError{}, wantJISX0402: ""},
+		"Normal case":           {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalcode: "1008105", checkAsError: false, wantError: nil, wantJISX0402: "13101"},
+		"Invalid postalcode":    {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalcode: "alphabet", checkAsError: false, wantError: kenall.ErrInvalidArgument, wantJISX0402: ""},
+		"Not found":             {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalcode: "0000000", checkAsError: false, wantError: kenall.ErrNotFound, wantJISX0402: ""},
+		"Unauthorized":          {endpoint: srv.URL, token: "bad_token", ctx: context.Background(), postalcode: "0000000", checkAsError: false, wantError: kenall.ErrUnauthorized, wantJISX0402: ""},
+		"Forbidden":             {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalcode: "4030000", checkAsError: false, wantError: kenall.ErrForbidden, wantJISX0402: ""},
+		"Internal server error": {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalcode: "5000000", checkAsError: false, wantError: kenall.ErrInternalServerError, wantJISX0402: ""},
+		"Bad gateway":           {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalcode: "5020000", checkAsError: false, wantError: kenall.ErrBadGateway, wantJISX0402: ""},
+		"Wrong endpoint":        {endpoint: "", token: "opencollector", ctx: context.Background(), postalcode: "0000000", checkAsError: true, wantError: &url.Error{}, wantJISX0402: ""},
+		"Wrong response":        {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalcode: "0000001", checkAsError: true, wantError: &json.MarshalerError{}, wantJISX0402: ""},
+		"Nil context":           {endpoint: srv.URL, token: "opencollector", ctx: nil, postalcode: "0000000", checkAsError: true, wantError: errors.New("net/http: nil Context"), wantJISX0402: ""},
 	}
 
 	for name, c := range cases {
@@ -84,7 +86,7 @@ func TestClient_Get(t *testing.T) {
 				t.Error(err)
 			}
 
-			res, err := cli.Get(context.Background(), c.postalcode)
+			res, err := cli.Get(c.ctx, c.postalcode)
 			if c.checkAsError && !errors.As(err, &c.wantError) {
 				t.Errorf("give: %v, want: %v", err, c.wantError)
 			} else if !errors.Is(err, c.wantError) {
