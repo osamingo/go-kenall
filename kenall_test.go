@@ -54,18 +54,21 @@ func TestClient_Get(t *testing.T) {
 	})
 
 	cases := map[string]struct {
+		endpoint     string
 		token        string
 		postalcode   string
+		checkError   bool
 		wantError    error
 		wantJISX0402 string
 	}{
-		"Normal case":           {token: "opencollector", postalcode: "1008105", wantError: nil, wantJISX0402: "13101"},
-		"Invalid postalcode":    {token: "opencollector", postalcode: "alphabet", wantError: kenall.ErrInvalidArgument, wantJISX0402: ""},
-		"Not found":             {token: "opencollector", postalcode: "0000000", wantError: kenall.ErrNotFound, wantJISX0402: ""},
-		"Unauthorized":          {token: "bad_token", postalcode: "0000000", wantError: kenall.ErrUnauthorized, wantJISX0402: ""},
-		"Forbidden":             {token: "opencollector", postalcode: "4030000", wantError: kenall.ErrForbidden, wantJISX0402: ""},
-		"Internal server error": {token: "opencollector", postalcode: "5000000", wantError: kenall.ErrInternalServerError, wantJISX0402: ""},
-		"Bad gateway":           {token: "opencollector", postalcode: "5020000", wantError: kenall.ErrBadGateway, wantJISX0402: ""},
+		"Normal case":           {endpoint: srv.URL, token: "opencollector", postalcode: "1008105", checkError: false, wantError: nil, wantJISX0402: "13101"},
+		"Invalid postalcode":    {endpoint: srv.URL, token: "opencollector", postalcode: "alphabet", checkError: true, wantError: kenall.ErrInvalidArgument, wantJISX0402: ""},
+		"Not found":             {endpoint: srv.URL, token: "opencollector", postalcode: "0000000", checkError: true, wantError: kenall.ErrNotFound, wantJISX0402: ""},
+		"Unauthorized":          {endpoint: srv.URL, token: "bad_token", postalcode: "0000000", checkError: true, wantError: kenall.ErrUnauthorized, wantJISX0402: ""},
+		"Forbidden":             {endpoint: srv.URL, token: "opencollector", postalcode: "4030000", checkError: true, wantError: kenall.ErrForbidden, wantJISX0402: ""},
+		"Internal server error": {endpoint: srv.URL, token: "opencollector", postalcode: "5000000", checkError: true, wantError: kenall.ErrInternalServerError, wantJISX0402: ""},
+		"Bad gateway":           {endpoint: srv.URL, token: "opencollector", postalcode: "5020000", checkError: true, wantError: kenall.ErrBadGateway, wantJISX0402: ""},
+		"Wrong endpoint":        {endpoint: "", token: "opencollector", postalcode: "5020000", checkError: false, wantError: nil, wantJISX0402: ""},
 	}
 
 	for name, c := range cases {
@@ -73,13 +76,13 @@ func TestClient_Get(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			cli, err := kenall.NewClient(c.token, kenall.WithEndpoint(srv.URL))
+			cli, err := kenall.NewClient(c.token, kenall.WithEndpoint(c.endpoint))
 			if err != nil {
 				t.Error(err)
 			}
 
 			res, err := cli.Get(context.Background(), c.postalcode)
-			if !errors.Is(c.wantError, err) {
+			if c.checkError && !errors.Is(c.wantError, err) {
 				t.Errorf("give: %v, want: %v", err, c.wantError)
 			}
 			if res != nil && res.Addresses[0].JISX0402 != c.wantJISX0402 {
