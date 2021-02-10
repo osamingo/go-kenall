@@ -19,3 +19,4 @@ issues:
         - funlen
         - paralleltest
         - forbidigo
+        - goerr113
