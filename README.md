@@ -37,7 +37,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	res, err := cli.Get(context.Background(), "1000001")
+	res, err := cli.GetAddress(context.Background(), "1000001")
 	if err != nil {
 		log.Fatal(err)
 	}
