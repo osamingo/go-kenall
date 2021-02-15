@@ -21,13 +21,14 @@ func TestNewClient(t *testing.T) {
 	t.Parallel()
 
 	cases := map[string]struct {
-		token string
-		opts  []kenall.Option
-		want  error
+		token      string
+		httpClient *http.Client
+		endpoint   string
+		want       error
 	}{
-		"Empty token":         {token: "", opts: nil, want: kenall.ErrInvalidArgument},
-		"Give token":          {token: "dummy", opts: nil, want: nil},
-		"Give token and opts": {token: "dummy", opts: []kenall.Option{kenall.WithEndpoint(""), kenall.WithHTTPClient(nil)}, want: nil},
+		"Empty token":         {token: "", httpClient: nil, endpoint: "", want: kenall.ErrInvalidArgument},
+		"Give token":          {token: "dummy", httpClient: nil, endpoint: "", want: nil},
+		"Give token and opts": {token: "dummy", httpClient: &http.Client{}, endpoint: "customize_endpoint", want: nil},
 	}
 
 	for name, c := range cases {
@@ -35,13 +36,24 @@ func TestNewClient(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			cli, err := kenall.NewClient(c.token, c.opts...)
+			opts := make([]kenall.ClientOption, 0, 2)
+			if c.httpClient != nil {
+				opts = append(opts, kenall.WithHTTPClient(c.httpClient))
+			}
+			if c.endpoint != "" {
+				opts = append(opts, kenall.WithEndpoint(c.endpoint))
+			}
+
+			cli, err := kenall.NewClient(c.token, opts...)
 			if !errors.Is(c.want, err) {
 				t.Errorf("give: %v, want: %v", err, c.want)
 			}
 
-			if len(c.opts) != 0 && cli.Endpoint != "" && cli.HTTPClient != nil {
-				t.Error("option is not reflected")
+			if c.httpClient != nil && cli.HTTPClient != c.httpClient {
+				t.Errorf("give: %v, want: %v", cli.HTTPClient, c.httpClient)
+			}
+			if c.endpoint != "" && cli.Endpoint != c.endpoint {
+				t.Errorf("give: %v, want: %v", cli.Endpoint, c.endpoint)
 			}
 		})
 	}

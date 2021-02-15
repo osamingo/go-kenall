@@ -41,8 +41,18 @@ type (
 
 		token string
 	}
-	// A Option provides a Functional Option Pattern for kenall.Client.
-	Option func(*Client)
+
+	// A ClientOption provides a customize option for kenall.Client.
+	ClientOption interface {
+		Apply(*Client)
+	}
+	withHTTPClient struct {
+		client *http.Client
+	}
+	withEndpoint struct {
+		endpoint string
+	}
+
 	// A GetAddressResponse is a result from the kenall service of the API to get the address from the postal code.
 	GetAddressResponse struct {
 		Version   Version    `json:"version"`
@@ -82,7 +92,7 @@ type (
 )
 
 // NewClient creates kenall.Client with the authorization token provided by the kenall.
-func NewClient(token string, opts ...Option) (*Client, error) {
+func NewClient(token string, opts ...ClientOption) (*Client, error) {
 	if token == "" {
 		return nil, ErrInvalidArgument
 	}
@@ -94,24 +104,20 @@ func NewClient(token string, opts ...Option) (*Client, error) {
 	}
 
 	for _, opt := range opts {
-		opt(cli)
+		opt.Apply(cli)
 	}
 
 	return cli, nil
 }
 
 // WithHTTPClient injects optional HTTP Client to kenall.Client.
-func WithHTTPClient(cli *http.Client) Option {
-	return func(c *Client) {
-		c.HTTPClient = cli
-	}
+func WithHTTPClient(cli *http.Client) ClientOption {
+	return &withHTTPClient{client: cli}
 }
 
 // WithEndpoint injects optional endpoint to kenall.Client.
-func WithEndpoint(endpoint string) Option {
-	return func(c *Client) {
-		c.Endpoint = endpoint
-	}
+func WithEndpoint(endpoint string) ClientOption {
+	return &withEndpoint{endpoint: endpoint}
 }
 
 // GetAddress requests to the kenall service to get the address by postal code.
@@ -170,4 +176,14 @@ func (v *Version) UnmarshalJSON(data []byte) error {
 	*v = Version(t)
 
 	return nil
+}
+
+// Apply implements kenall.ClientOption interface.
+func (w *withHTTPClient) Apply(cli *Client) {
+	cli.HTTPClient = w.client
+}
+
+// Apply implements kenall.ClientOption interface.
+func (w *withEndpoint) Apply(cli *Client) {
+	cli.Endpoint = w.endpoint
 }
