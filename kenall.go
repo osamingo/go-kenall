@@ -43,8 +43,8 @@ type (
 	}
 	// A Option provides a Functional Option Pattern for kenall.Client.
 	Option func(*Client)
-	// A Response is a result from the kenall service of the API to get the address from the postal code.
-	Response struct {
+	// A GetAddressResponse is a result from the kenall service of the API to get the address from the postal code.
+	GetAddressResponse struct {
 		Version   Version    `json:"version"`
 		Addresses []*Address `json:"data"`
 	}
@@ -114,8 +114,8 @@ func WithEndpoint(endpoint string) Option {
 	}
 }
 
-// Get requests to the kenall service to get the address by postal code.
-func (cli *Client) Get(ctx context.Context, postalCode string) (*Response, error) {
+// GetAddress requests to the kenall service to get the address by postal code.
+func (cli *Client) GetAddress(ctx context.Context, postalCode string) (*GetAddressResponse, error) {
 	if _, err := strconv.Atoi(postalCode); err != nil || len(postalCode) != 7 {
 		return nil, ErrInvalidArgument
 	}
@@ -150,7 +150,7 @@ func (cli *Client) Get(ctx context.Context, postalCode string) (*Response, error
 		return nil, ErrBadGateway
 	}
 
-	var resp Response
+	var resp GetAddressResponse
 	if err := json.NewDecoder(res.Body).Decode(&resp); err != nil {
 		return nil, fmt.Errorf("kenall: failed to decode to response: %w", err)
 	}

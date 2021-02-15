@@ -47,7 +47,7 @@ func TestNewClient(t *testing.T) {
 	}
 }
 
-func TestClient_Get(t *testing.T) {
+func TestClient_GetAddress(t *testing.T) {
 	t.Parallel()
 
 	srv := runTestingServer(t)
@@ -86,7 +86,7 @@ func TestClient_Get(t *testing.T) {
 				t.Error(err)
 			}
 
-			res, err := cli.Get(c.ctx, c.postalcode)
+			res, err := cli.GetAddress(c.ctx, c.postalcode)
 			if c.checkAsError && !errors.As(err, &c.wantError) {
 				t.Errorf("give: %v, want: %v", err, c.wantError)
 			} else if !errors.Is(err, c.wantError) {
@@ -129,13 +129,13 @@ func TestVersion_UnmarshalJSON(t *testing.T) {
 	}
 }
 
-func ExampleClient_Get() {
+func ExampleClient_GetAddress() {
 	cli, err := kenall.NewClient(os.Getenv("KENALL_AUTHORIZATION_TOKEN"))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	res, err := cli.Get(context.Background(), "1000001")
+	res, err := cli.GetAddress(context.Background(), "1000001")
 	if err != nil {
 		log.Fatal(err)
 	}
