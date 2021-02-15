@@ -12,32 +12,45 @@ import (
 )
 
 const (
-	Endpoint          = "https://api.kenall.jp/v1"
+	// Endpoint is an endpoint provided by the kenall service.
+	Endpoint = "https://api.kenall.jp/v1"
+	// RFC3339DateFormat is the RFC3339-Date format for Go.
 	RFC3339DateFormat = "2006-01-02"
 )
 
 var (
-	ErrInvalidArgument     = fmt.Errorf("kenall: invalid argument")
-	ErrUnauthorized        = fmt.Errorf("kenall: 401 unauthorized error")
-	ErrForbidden           = fmt.Errorf("kenall: 403 forbidden error")
-	ErrNotFound            = fmt.Errorf("kenall: 404 not found error")
+	// ErrInvalidArgument is an error value that will be returned if the value of the argument is invalid.
+	ErrInvalidArgument = fmt.Errorf("kenall: invalid argument")
+	// ErrUnauthorized is an error value that will be returned if the authorization token is invalid.
+	ErrUnauthorized = fmt.Errorf("kenall: 401 unauthorized error")
+	// ErrForbidden is an error value that will be returned when the resource does not have access privileges.
+	ErrForbidden = fmt.Errorf("kenall: 403 forbidden error")
+	// ErrNotFound is an error value that will be returned when there is no resource to be retrieved.
+	ErrNotFound = fmt.Errorf("kenall: 404 not found error")
+	// ErrInternalServerError is an error value that will be returned when some error occurs in the kenall service.
 	ErrInternalServerError = fmt.Errorf("kenall: 500 internal server error")
-	ErrBadGateway          = fmt.Errorf("kenall: 502 bad gateway error")
+	// ErrBadGateway is an error value that will be returned when the kenall service is unavailable.
+	ErrBadGateway = fmt.Errorf("kenall: 502 bad gateway error")
 )
 
 type (
+	// A Client implements API requests to the kenall service.
 	Client struct {
 		HTTPClient *http.Client
 		Endpoint   string
 
 		token string
 	}
-	Option   func(*Client)
+	// A Option provides a Functional Option Pattern for kenall.Client.
+	Option func(*Client)
+	// A Response is a result from the kenall service of the API to get the address from the postal code.
 	Response struct {
 		Version   Version    `json:"version"`
 		Addresses []*Address `json:"data"`
 	}
+	// A Version is the version-controlled date of the retrieved data.
 	Version time.Time
+	// An Address is an address associated with the postal code defined by JP POST.
 	Address struct {
 		JISX0402           string `json:"jisx0402"`
 		OldCode            string `json:"old_code"`
@@ -68,6 +81,7 @@ type (
 	}
 )
 
+// NewClient creates kenall.Client with the authorization token provided by the kenall.
 func NewClient(token string, opts ...Option) (*Client, error) {
 	if token == "" {
 		return nil, ErrInvalidArgument
@@ -86,18 +100,21 @@ func NewClient(token string, opts ...Option) (*Client, error) {
 	return cli, nil
 }
 
+// WithHTTPClient injects optional HTTP Client to kenall.Client.
 func WithHTTPClient(cli *http.Client) Option {
 	return func(c *Client) {
 		c.HTTPClient = cli
 	}
 }
 
+// WithEndpoint injects optional endpoint to kenall.Client.
 func WithEndpoint(endpoint string) Option {
 	return func(c *Client) {
 		c.Endpoint = endpoint
 	}
 }
 
+// Get requests to the kenall service to get the address by postal code.
 func (cli *Client) Get(ctx context.Context, postalCode string) (*Response, error) {
 	if _, err := strconv.Atoi(postalCode); err != nil || len(postalCode) != 7 {
 		return nil, ErrInvalidArgument
@@ -141,6 +158,7 @@ func (cli *Client) Get(ctx context.Context, postalCode string) (*Response, error
 	return &resp, nil
 }
 
+// UnmarshalJSON implements json.Unmarshaler interface.
 func (v *Version) UnmarshalJSON(data []byte) error {
 	if string(data) == "null" {
 		return nil
