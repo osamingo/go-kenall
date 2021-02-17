@@ -48,6 +48,11 @@ func main() {
 }
 ```
 
+## Articles
+
+- [ケンオール通信第1号](https://blog.kenall.jp/entry/kenall-newsletter-vol1)
+  - This library has been featured on the official blog 🎉
+
 ## License
 
 Released under the [MIT License](https://github.com/osamingo/go-kenall/blob/main/LICENSE).
