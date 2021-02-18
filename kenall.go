@@ -91,7 +91,7 @@ type (
 	}
 )
 
-// NewClient creates kenall.Client with the authorization token provided by the kenall.
+// NewClient creates kenall.Client with the authorization token provided by the kenall service.
 func NewClient(token string, opts ...ClientOption) (*Client, error) {
 	if token == "" {
 		return nil, ErrInvalidArgument
@@ -127,41 +127,51 @@ func (cli *Client) GetAddress(ctx context.Context, postalCode string) (*GetAddre
 	}
 
 	const path = "/postalcode/"
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+path+postalCode, nil)
 	if err != nil {
 		return nil, fmt.Errorf("kenall: failed to generate http request: %w", err)
 	}
 
+	var res GetAddressResponse
+	if err := cli.sendRequest(req, &res); err != nil {
+		return nil, fmt.Errorf("kenall: failed to send request for kenall service: %w", err)
+	}
+
+	return &res, nil
+}
+
+func (cli *Client) sendRequest(req *http.Request, res interface{}) error {
 	req.Header.Add("Authorization", "token "+cli.token)
 
-	res, err := cli.HTTPClient.Do(req)
+	resp, err := cli.HTTPClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("kenall: failed to request for kenall: %w", err)
+		return fmt.Errorf("kenall: failed to do http client with a request for kenall service: %w", err)
 	}
+
 	defer func() {
-		defer res.Body.Close()
-		io.Copy(ioutil.Discard, res.Body)
+		defer resp.Body.Close()
+		io.Copy(ioutil.Discard, resp.Body)
 	}()
 
-	switch res.StatusCode {
+	switch resp.StatusCode {
 	case http.StatusUnauthorized:
-		return nil, ErrUnauthorized
+		return ErrUnauthorized
 	case http.StatusForbidden:
-		return nil, ErrForbidden
+		return ErrForbidden
 	case http.StatusNotFound:
-		return nil, ErrNotFound
+		return ErrNotFound
 	case http.StatusInternalServerError:
-		return nil, ErrInternalServerError
+		return ErrInternalServerError
 	case http.StatusBadGateway:
-		return nil, ErrBadGateway
+		return ErrBadGateway
 	}
 
-	var resp GetAddressResponse
-	if err := json.NewDecoder(res.Body).Decode(&resp); err != nil {
-		return nil, fmt.Errorf("kenall: failed to decode to response: %w", err)
+	if err := json.NewDecoder(resp.Body).Decode(res); err != nil {
+		return fmt.Errorf("kenall: failed to decode to response: %w", err)
 	}
 
-	return &resp, nil
+	return nil
 }
 
 // UnmarshalJSON implements json.Unmarshaler interface.
@@ -169,10 +179,12 @@ func (v *Version) UnmarshalJSON(data []byte) error {
 	if string(data) == "null" {
 		return nil
 	}
+
 	t, err := time.Parse(`"`+RFC3339DateFormat+`"`, string(data))
 	if err != nil {
 		return fmt.Errorf("kenall: failed to parse date with RFC3339 Date: %w", err)
 	}
+
 	*v = Version(t)
 
 	return nil
