@@ -18,13 +18,13 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2
         with:
-          version: v1.36.0
+          version: v1.37.0
   test:
     name: Test
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        go: [ '1.14.x', '1.15.x' ]
+        go: [ '1.15.x', '1.16.x' ]
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -33,7 +33,7 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
       - name: Test Go Code
-        run: go test -v -race -covermode=atomic -coverprofile=coverage.txt ./...
+        run: go test -race -covermode=atomic -coverprofile=coverage.txt ./...
         env:
           KENALL_AUTHORIZATION_TOKEN: ${{ secrets.KENALL_AUTHORIZATION_TOKEN }}
       - name: Upload coverage to Codecov
