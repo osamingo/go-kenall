@@ -23,6 +23,8 @@ var (
 	ErrInvalidArgument = fmt.Errorf("kenall: invalid argument")
 	// ErrUnauthorized is an error value that will be returned if the authorization token is invalid.
 	ErrUnauthorized = fmt.Errorf("kenall: 401 unauthorized error")
+	// ErrPaymentRequired is an error value that will be returned if the payment for your kenall account is overdue.
+	ErrPaymentRequired = fmt.Errorf("kenall: 402 payment required error")
 	// ErrForbidden is an error value that will be returned when the resource does not have access privileges.
 	ErrForbidden = fmt.Errorf("kenall: 403 forbidden error")
 	// ErrNotFound is an error value that will be returned when there is no resource to be retrieved.
@@ -141,6 +143,7 @@ func (cli *Client) GetAddress(ctx context.Context, postalCode string) (*GetAddre
 	return &res, nil
 }
 
+// nolint: cyclop,goerr113
 func (cli *Client) sendRequest(req *http.Request, res interface{}) error {
 	req.Header.Add("Authorization", "token "+cli.token)
 
@@ -155,8 +158,12 @@ func (cli *Client) sendRequest(req *http.Request, res interface{}) error {
 	}()
 
 	switch resp.StatusCode {
+	case http.StatusOK:
+		// do nothing :)
 	case http.StatusUnauthorized:
 		return ErrUnauthorized
+	case http.StatusPaymentRequired:
+		return ErrPaymentRequired
 	case http.StatusForbidden:
 		return ErrForbidden
 	case http.StatusNotFound:
@@ -165,6 +172,8 @@ func (cli *Client) sendRequest(req *http.Request, res interface{}) error {
 		return ErrInternalServerError
 	case http.StatusBadGateway:
 		return ErrBadGateway
+	default:
+		return fmt.Errorf("kenall: not registered in the error handling, http status code = %d", resp.StatusCode)
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(res); err != nil {

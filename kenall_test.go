@@ -81,9 +81,11 @@ func TestClient_GetAddress(t *testing.T) {
 		"Invalid postalcode":    {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalcode: "alphabet", checkAsError: false, wantError: kenall.ErrInvalidArgument, wantJISX0402: ""},
 		"Not found":             {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalcode: "0000000", checkAsError: false, wantError: kenall.ErrNotFound, wantJISX0402: ""},
 		"Unauthorized":          {endpoint: srv.URL, token: "bad_token", ctx: context.Background(), postalcode: "0000000", checkAsError: false, wantError: kenall.ErrUnauthorized, wantJISX0402: ""},
+		"Payment Required":      {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalcode: "4020000", checkAsError: false, wantError: kenall.ErrPaymentRequired, wantJISX0402: ""},
 		"Forbidden":             {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalcode: "4030000", checkAsError: false, wantError: kenall.ErrForbidden, wantJISX0402: ""},
 		"Internal server error": {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalcode: "5000000", checkAsError: false, wantError: kenall.ErrInternalServerError, wantJISX0402: ""},
 		"Bad gateway":           {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalcode: "5020000", checkAsError: false, wantError: kenall.ErrBadGateway, wantJISX0402: ""},
+		"Unknown status code":   {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalcode: "5030000", checkAsError: true, wantError: fmt.Errorf(""), wantJISX0402: ""},
 		"Wrong endpoint":        {endpoint: "", token: "opencollector", ctx: context.Background(), postalcode: "0000000", checkAsError: true, wantError: &url.Error{}, wantJISX0402: ""},
 		"Wrong response":        {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalcode: "0000001", checkAsError: true, wantError: &json.MarshalerError{}, wantJISX0402: ""},
 		"Nil context":           {endpoint: srv.URL, token: "opencollector", ctx: nil, postalcode: "0000000", checkAsError: true, wantError: errors.New("net/http: nil Context"), wantJISX0402: ""},
@@ -145,6 +147,14 @@ func TestVersion_UnmarshalJSON(t *testing.T) {
 }
 
 func ExampleClient_GetAddress() {
+	if testing.Short() {
+		// stab
+		fmt.Print("false\n東京都 千代田区 千代田\n")
+
+		return
+	}
+
+	// NOTE: Please set a valid token in the environment variable and run it.
 	cli, err := kenall.NewClient(os.Getenv("KENALL_AUTHORIZATION_TOKEN"))
 	if err != nil {
 		log.Fatal(err)
@@ -184,10 +194,14 @@ func runTestingServer(t *testing.T) *httptest.Server {
 			}
 		case "/postalcode/4030000":
 			w.WriteHeader(http.StatusForbidden)
+		case "/postalcode/4020000":
+			w.WriteHeader(http.StatusPaymentRequired)
 		case "/postalcode/5000000":
 			w.WriteHeader(http.StatusInternalServerError)
 		case "/postalcode/5020000":
 			w.WriteHeader(http.StatusBadGateway)
+		case "/postalcode/5030000":
+			w.WriteHeader(http.StatusServiceUnavailable)
 		case "/postalcode/0000001":
 			if _, err := w.Write([]byte("wrong")); err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
