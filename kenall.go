@@ -60,6 +60,12 @@ type (
 		Version   Version    `json:"version"`
 		Addresses []*Address `json:"data"`
 	}
+	// A GetCityResponse is a result from the kenall service of the API to get the city from the prefecture code.
+	GetCityResponse struct {
+		Version Version `json:"version"`
+		Cities  []*City `json:"data"`
+	}
+
 	// A Version is the version-controlled date of the retrieved data.
 	Version time.Time
 	// An Address is an address associated with the postal code defined by JP POST.
@@ -90,6 +96,16 @@ type (
 			PostOffice string `json:"post_office"`
 			CodeType   int    `json:"code_type"`
 		} `json:"corporation"`
+	}
+	// A City is a city associated with the prefecture code defined by JIS X 0401.
+	City struct {
+		JISX0402       string `json:"jisx0402"`
+		PrefectureCode string `json:"prefecture_code"`
+		CityCode       string `json:"city_code"`
+		PrefectureKana string `json:"prefecture_kana"`
+		CityKana       string `json:"city_kana"`
+		Prefecture     string `json:"prefecture"`
+		City           string `json:"city"`
 	}
 )
 
@@ -136,6 +152,27 @@ func (cli *Client) GetAddress(ctx context.Context, postalCode string) (*GetAddre
 	}
 
 	var res GetAddressResponse
+	if err := cli.sendRequest(req, &res); err != nil {
+		return nil, fmt.Errorf("kenall: failed to send request for kenall service: %w", err)
+	}
+
+	return &res, nil
+}
+
+// GetCity requests to the kenall service to get the city by prefecture code.
+func (cli *Client) GetCity(ctx context.Context, prefectureCode string) (*GetCityResponse, error) {
+	if _, err := strconv.Atoi(prefectureCode); err != nil || len(prefectureCode) != 2 {
+		return nil, ErrInvalidArgument
+	}
+
+	const path = "/cities/"
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+path+prefectureCode, nil)
+	if err != nil {
+		return nil, fmt.Errorf("kenall: failed to generate http request: %w", err)
+	}
+
+	var res GetCityResponse
 	if err := cli.sendRequest(req, &res); err != nil {
 		return nil, fmt.Errorf("kenall: failed to send request for kenall service: %w", err)
 	}
