@@ -177,6 +177,33 @@ func ExampleClient_GetAddress() {
 	// 東京都 千代田区 千代田
 }
 
+func ExampleClient_GetCity() {
+	if testing.Short() {
+		// stab
+		fmt.Print("false\n東京都 千代田区\n")
+
+		return
+	}
+
+	// NOTE: Please set a valid token in the environment variable and run it.
+	cli, err := kenall.NewClient(os.Getenv("KENALL_AUTHORIZATION_TOKEN"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := cli.GetCity(context.Background(), "13")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	addr := res.Cities[0]
+	fmt.Println(time.Time(res.Version).IsZero())
+	fmt.Println(addr.Prefecture, addr.City)
+	// Output:
+	// false
+	// 東京都 千代田区
+}
+
 func runTestingServer(t *testing.T) *httptest.Server {
 	t.Helper()
 
