@@ -18,8 +18,12 @@ import (
 	"github.com/osamingo/go-kenall"
 )
 
-//go:embed testdata/addresses.json
-var addressResponse []byte
+var (
+	//go:embed testdata/addresses.json
+	addressResponse []byte
+	//go:embed testdata/cities.json
+	cityResponse []byte
+)
 
 func TestNewClient(t *testing.T) {
 	t.Parallel()
@@ -219,6 +223,8 @@ func runTestingServer(t *testing.T) *httptest.Server {
 		switch path := r.URL.Path; {
 		case strings.HasPrefix(path, "/postalcode/"):
 			handlePostalAPI(t, w, path)
+		case strings.HasPrefix(path, "/cities/"):
+			handleCityAPI(t, w, path)
 		default:
 			w.WriteHeader(http.StatusNotFound)
 		}
@@ -244,6 +250,33 @@ func handlePostalAPI(t *testing.T, w http.ResponseWriter, path string) {
 	case "/postalcode/5030000":
 		w.WriteHeader(http.StatusServiceUnavailable)
 	case "/postalcode/0000001":
+		if _, err := w.Write([]byte("wrong")); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	default:
+		w.WriteHeader(http.StatusNotFound)
+	}
+}
+
+func handleCityAPI(t *testing.T, w http.ResponseWriter, path string) {
+	t.Helper()
+
+	switch path {
+	case "/cities/13":
+		if _, err := w.Write(cityResponse); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	case "/cities/90":
+		w.WriteHeader(http.StatusForbidden)
+	case "/cities/91":
+		w.WriteHeader(http.StatusPaymentRequired)
+	case "/cities/92":
+		w.WriteHeader(http.StatusInternalServerError)
+	case "/cities/93":
+		w.WriteHeader(http.StatusBadGateway)
+	case "/cities/94":
+		w.WriteHeader(http.StatusServiceUnavailable)
+	case "/cities/95":
 		if _, err := w.Write([]byte("wrong")); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
