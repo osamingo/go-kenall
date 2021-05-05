@@ -144,7 +144,7 @@ func (cli *Client) GetAddress(ctx context.Context, postalCode string) (*GetAddre
 		return nil, ErrInvalidArgument
 	}
 
-	const path = "/postalcode/"
+	const path = "/postalCode/"
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+path+postalCode, nil)
 	if err != nil {
