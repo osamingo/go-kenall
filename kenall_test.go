@@ -2,6 +2,7 @@ package kenall_test
 
 import (
 	"context"
+	_ "embed"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,6 +17,9 @@ import (
 
 	"github.com/osamingo/go-kenall"
 )
+
+//go:embed testdata/addresses.json
+var addressResponse []byte
 
 func TestNewClient(t *testing.T) {
 	t.Parallel()
@@ -176,8 +180,6 @@ func ExampleClient_GetAddress() {
 func runTestingServer(t *testing.T) *httptest.Server {
 	t.Helper()
 
-	const data = `{"version":"2020-11-30","data":[{"jisx0402":"13101","old_code":"100","postal_code":"1008105","prefecture_kana":"","city_kana":"","town_kana":"","town_kana_raw":"","prefecture":"東京都","city":"千代田区","town":"大手町","koaza":"","kyoto_street":"","building":"","floor":"","town_partial":false,"town_addressed_koaza":false,"town_chome":false,"town_multi":false,"town_raw":"大手町","corporation":{"name":"チッソ　株式会社","name_kana":"ﾁﾂｿ ｶﾌﾞｼｷｶﾞｲｼﾔ","block_lot":"２丁目２－１（新大手町ビル）","post_office":"銀座","code_type":0}}]}`
-
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := strings.Fields(r.Header.Get("Authorization"))
 
@@ -187,27 +189,38 @@ func runTestingServer(t *testing.T) *httptest.Server {
 			return
 		}
 
-		switch r.URL.Path {
-		case "/postalcode/1008105":
-			if _, err := w.Write([]byte(data)); err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-			}
-		case "/postalcode/4030000":
-			w.WriteHeader(http.StatusForbidden)
-		case "/postalcode/4020000":
-			w.WriteHeader(http.StatusPaymentRequired)
-		case "/postalcode/5000000":
-			w.WriteHeader(http.StatusInternalServerError)
-		case "/postalcode/5020000":
-			w.WriteHeader(http.StatusBadGateway)
-		case "/postalcode/5030000":
-			w.WriteHeader(http.StatusServiceUnavailable)
-		case "/postalcode/0000001":
-			if _, err := w.Write([]byte("wrong")); err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-			}
+		switch path := r.URL.Path; {
+		case strings.HasPrefix(path, "/postalcode/"):
+			handlePostalAPI(t, w, path)
 		default:
 			w.WriteHeader(http.StatusNotFound)
 		}
 	}))
+}
+
+func handlePostalAPI(t *testing.T, w http.ResponseWriter, path string) {
+	t.Helper()
+
+	switch path {
+	case "/postalcode/1008105":
+		if _, err := w.Write(addressResponse); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	case "/postalcode/4030000":
+		w.WriteHeader(http.StatusForbidden)
+	case "/postalcode/4020000":
+		w.WriteHeader(http.StatusPaymentRequired)
+	case "/postalcode/5000000":
+		w.WriteHeader(http.StatusInternalServerError)
+	case "/postalcode/5020000":
+		w.WriteHeader(http.StatusBadGateway)
+	case "/postalcode/5030000":
+		w.WriteHeader(http.StatusServiceUnavailable)
+	case "/postalcode/0000001":
+		if _, err := w.Write([]byte("wrong")); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	default:
+		w.WriteHeader(http.StatusNotFound)
+	}
 }
