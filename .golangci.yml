@@ -21,3 +21,4 @@ issues:
         - goerr113
         - exhaustivestruct
         - cyclop
+        - gochecknoglobals
