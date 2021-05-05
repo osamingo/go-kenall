@@ -13,7 +13,7 @@ Unofficially [kenall](https://kenall.jp/) (ケンオール) client written by Go
 ## Install
 
 ```shell
-$ go get -u github.com/osamingo/go-kenall
+$ go get github.com/osamingo/go-kenall@v1.2.0
 ```
 
 ## Usage
@@ -31,20 +31,26 @@ import (
 )
 
 func main() {
-
 	cli, err := kenall.NewClient(os.Getenv("KENALL_AUTHORIZATION_TOKEN"))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	res, err := cli.GetAddress(context.Background(), "1000001")
+	resAddr, err := cli.GetAddress(context.Background(), "1000001")
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	addr := res.Addresses[0]
+	addr := resAddr.Addresses[0]
 	fmt.Println(addr.Prefecture, addr.City, addr.Town)
 	// Output: 東京都 千代田区 千代田
+
+	resCity, err := cli.GetCity(context.Background(), "13")
+	if err != nil {
+		log.Fatal(err)
+	}
+	city := resCity.Cities[0]
+	fmt.Println(city.Prefecture, city.City)
+	// Output: 東京都 千代田区
 }
 ```
 
