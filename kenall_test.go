@@ -85,7 +85,7 @@ func TestClient_GetAddress(t *testing.T) {
 		wantError    error
 		wantJISX0402 string
 	}{
-		"Normal case":           {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalCode: "1008105", checkAsError: false, wantError: nil, wantJISX0402: "13101"},
+		"Normal case":           {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalCode: "1008105", checkAsError: false, wantError: nil, wantJISX0402: "13104"},
 		"Invalid postal code":   {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalCode: "alphabet", checkAsError: false, wantError: kenall.ErrInvalidArgument, wantJISX0402: ""},
 		"Not found":             {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalCode: "0000000", checkAsError: false, wantError: kenall.ErrNotFound, wantJISX0402: ""},
 		"Unauthorized":          {endpoint: srv.URL, token: "bad_token", ctx: context.Background(), postalCode: "0000000", checkAsError: false, wantError: kenall.ErrUnauthorized, wantJISX0402: ""},
