@@ -3,10 +3,12 @@ package kenall
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 )
@@ -33,6 +35,8 @@ var (
 	ErrMethodNotAllowed = fmt.Errorf("kenall: 405 method not allowed error")
 	// ErrInternalServerError is an error value that will be returned when some error occurs in the kenall service.
 	ErrInternalServerError = fmt.Errorf("kenall: 500 internal server error")
+	// ErrTimeout is an error value that will be returned when the request is timeout.
+	ErrTimeout = func(err error) error { return fmt.Errorf("kenall: request timeout: %w", err) }
 )
 
 type (
@@ -187,12 +191,16 @@ func (cli *Client) sendRequest(req *http.Request, res interface{}) error {
 
 	resp, err := cli.HTTPClient.Do(req)
 	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) || os.IsTimeout(err) {
+			return ErrTimeout(err)
+		}
+
 		return fmt.Errorf("kenall: failed to do http client with a request for kenall service: %w", err)
 	}
 
 	defer func() {
-		defer resp.Body.Close()
-		io.Copy(ioutil.Discard, resp.Body)
+		_ = resp.Body.Close()
+		_, _ = io.Copy(ioutil.Discard, resp.Body)
 	}()
 
 	switch resp.StatusCode {

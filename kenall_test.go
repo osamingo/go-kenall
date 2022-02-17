@@ -71,8 +71,10 @@ func TestNewClient(t *testing.T) {
 func TestClient_GetAddress(t *testing.T) {
 	t.Parallel()
 
+	toctx, cancel := context.WithTimeout(context.Background(), 1*time.Nanosecond)
 	srv := runTestingServer(t)
 	t.Cleanup(func() {
+		cancel()
 		srv.Close()
 	})
 
@@ -97,6 +99,7 @@ func TestClient_GetAddress(t *testing.T) {
 		"Wrong endpoint":        {endpoint: "", token: "opencollector", ctx: context.Background(), postalCode: "0000000", checkAsError: true, wantError: &url.Error{}, wantJISX0402: ""},
 		"Wrong response":        {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalCode: "0000001", checkAsError: true, wantError: &json.MarshalerError{}, wantJISX0402: ""},
 		"Nil context":           {endpoint: srv.URL, token: "opencollector", ctx: nil, postalCode: "0000000", checkAsError: true, wantError: errors.New("net/http: nil Context"), wantJISX0402: ""},
+		"Timeout context":       {endpoint: srv.URL, token: "opencollector", ctx: toctx, postalCode: "1008105", checkAsError: true, wantError: kenall.ErrTimeout(context.DeadlineExceeded), wantJISX0402: ""},
 	}
 
 	for name, c := range cases {
@@ -126,8 +129,10 @@ func TestClient_GetAddress(t *testing.T) {
 func TestClient_GetCity(t *testing.T) {
 	t.Parallel()
 
+	toctx, cancel := context.WithTimeout(context.Background(), 1*time.Nanosecond)
 	srv := runTestingServer(t)
 	t.Cleanup(func() {
+		cancel()
 		srv.Close()
 	})
 
@@ -152,6 +157,7 @@ func TestClient_GetCity(t *testing.T) {
 		"Wrong endpoint":          {endpoint: "", token: "opencollector", ctx: context.Background(), prefectureCode: "00", checkAsError: true, wantError: &url.Error{}, wantJISX0402: ""},
 		"Wrong response":          {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), prefectureCode: "95", checkAsError: true, wantError: &json.MarshalerError{}, wantJISX0402: ""},
 		"Nil context":             {endpoint: srv.URL, token: "opencollector", ctx: nil, prefectureCode: "00", checkAsError: true, wantError: errors.New("net/http: nil Context"), wantJISX0402: ""},
+		"Timeout context":         {endpoint: srv.URL, token: "opencollector", ctx: toctx, prefectureCode: "13", checkAsError: true, wantError: kenall.ErrTimeout(context.DeadlineExceeded), wantJISX0402: ""},
 	}
 
 	for name, c := range cases {
