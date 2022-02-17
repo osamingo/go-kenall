@@ -13,7 +13,7 @@ Unofficially [kenall](https://kenall.jp/) (ケンオール) client written by Go
 ## Install
 
 ```shell
-$ go get github.com/osamingo/go-kenall@v1.2.0
+$ go get github.com/osamingo/go-kenall@v1.2.1
 ```
 
 ## Usage
