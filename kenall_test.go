@@ -282,7 +282,7 @@ func runTestingServer(t *testing.T) *httptest.Server {
 		}
 
 		switch path := r.URL.Path; {
-		case strings.HasPrefix(path, "/postalCode/"):
+		case strings.HasPrefix(path, "/postalcode/"):
 			handlePostalAPI(t, w, path)
 		case strings.HasPrefix(path, "/cities/"):
 			handleCityAPI(t, w, path)
@@ -296,21 +296,21 @@ func handlePostalAPI(t *testing.T, w http.ResponseWriter, path string) {
 	t.Helper()
 
 	switch path {
-	case "/postalCode/1008105":
+	case "/postalcode/1008105":
 		if _, err := w.Write(addressResponse); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
-	case "/postalCode/4020000":
+	case "/postalcode/4020000":
 		w.WriteHeader(http.StatusPaymentRequired)
-	case "/postalCode/4030000":
+	case "/postalcode/4030000":
 		w.WriteHeader(http.StatusForbidden)
-	case "/postalCode/4050000":
+	case "/postalcode/4050000":
 		w.WriteHeader(http.StatusMethodNotAllowed)
-	case "/postalCode/5000000":
+	case "/postalcode/5000000":
 		w.WriteHeader(http.StatusInternalServerError)
-	case "/postalCode/5030000":
+	case "/postalcode/5030000":
 		w.WriteHeader(http.StatusServiceUnavailable)
-	case "/postalCode/0000001":
+	case "/postalcode/0000001":
 		if _, err := w.Write([]byte("wrong")); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
