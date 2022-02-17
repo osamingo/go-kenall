@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"time"
 )
 
 const (
@@ -47,16 +46,9 @@ type (
 
 		token string
 	}
-
 	// A ClientOption provides a customize option for kenall.Client.
 	ClientOption interface {
 		Apply(*Client)
-	}
-	withHTTPClient struct {
-		client *http.Client
-	}
-	withEndpoint struct {
-		endpoint string
 	}
 
 	// A GetAddressResponse is a result from the kenall service of the API to get the address from the postal code.
@@ -68,49 +60,6 @@ type (
 	GetCityResponse struct {
 		Version Version `json:"version"`
 		Cities  []*City `json:"data"`
-	}
-
-	// A Version is the version-controlled date of the retrieved data.
-	Version time.Time
-	// An Address is an address associated with the postal code defined by JP POST.
-	Address struct {
-		JISX0402           string `json:"jisx0402"`
-		OldCode            string `json:"old_code"`
-		PostalCode         string `json:"postal_code"`
-		PrefectureKana     string `json:"prefecture_kana"`
-		CityKana           string `json:"city_kana"`
-		TownKana           string `json:"town_kana"`
-		TownKanaRaw        string `json:"town_kana_raw"`
-		Prefecture         string `json:"prefecture"`
-		City               string `json:"city"`
-		Town               string `json:"town"`
-		Koaza              string `json:"koaza"`
-		KyotoStreet        string `json:"kyoto_street"`
-		Building           string `json:"building"`
-		Floor              string `json:"floor"`
-		TownPartial        bool   `json:"town_partial"`
-		TownAddressedKoaza bool   `json:"town_addressed_koaza"`
-		TownChome          bool   `json:"town_chome"`
-		TownMulti          bool   `json:"town_multi"`
-		TownRaw            string `json:"town_raw"`
-		Corporation        struct {
-			Name        string `json:"name"`
-			NameKana    string `json:"name_kana"`
-			BlockLot    string `json:"block_lot"`
-			BlockLotNum string `json:"block_lot_num"`
-			PostOffice  string `json:"post_office"`
-			CodeType    int    `json:"code_type"`
-		} `json:"corporation"`
-	}
-	// A City is a city associated with the prefecture code defined by JIS X 0401.
-	City struct {
-		JISX0402       string `json:"jisx0402"`
-		PrefectureCode string `json:"prefecture_code"`
-		CityCode       string `json:"city_code"`
-		PrefectureKana string `json:"prefecture_kana"`
-		CityKana       string `json:"city_kana"`
-		Prefecture     string `json:"prefecture"`
-		City           string `json:"city"`
 	}
 )
 
@@ -131,16 +80,6 @@ func NewClient(token string, opts ...ClientOption) (*Client, error) {
 	}
 
 	return cli, nil
-}
-
-// WithHTTPClient injects optional HTTP Client to kenall.Client.
-func WithHTTPClient(cli *http.Client) ClientOption {
-	return &withHTTPClient{client: cli}
-}
-
-// WithEndpoint injects optional endpoint to kenall.Client.
-func WithEndpoint(endpoint string) ClientOption {
-	return &withEndpoint{endpoint: endpoint}
 }
 
 // GetAddress requests to the kenall service to get the address by postal code.
@@ -205,7 +144,9 @@ func (cli *Client) sendRequest(req *http.Request, res interface{}) error {
 
 	switch resp.StatusCode {
 	case http.StatusOK:
-		// do nothing :)
+		if err := json.NewDecoder(resp.Body).Decode(res); err != nil {
+			return fmt.Errorf("kenall: failed to decode to response: %w", err)
+		}
 	case http.StatusUnauthorized:
 		return ErrUnauthorized
 	case http.StatusPaymentRequired:
@@ -222,35 +163,5 @@ func (cli *Client) sendRequest(req *http.Request, res interface{}) error {
 		return fmt.Errorf("kenall: not registered in the error handling, http status code = %d", resp.StatusCode)
 	}
 
-	if err := json.NewDecoder(resp.Body).Decode(res); err != nil {
-		return fmt.Errorf("kenall: failed to decode to response: %w", err)
-	}
-
 	return nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler interface.
-func (v *Version) UnmarshalJSON(data []byte) error {
-	if string(data) == "null" {
-		return nil
-	}
-
-	t, err := time.Parse(`"`+RFC3339DateFormat+`"`, string(data))
-	if err != nil {
-		return fmt.Errorf("kenall: failed to parse date with RFC3339 Date: %w", err)
-	}
-
-	*v = Version(t)
-
-	return nil
-}
-
-// Apply implements kenall.ClientOption interface.
-func (w *withHTTPClient) Apply(cli *Client) {
-	cli.HTTPClient = w.client
-}
-
-// Apply implements kenall.ClientOption interface.
-func (w *withEndpoint) Apply(cli *Client) {
-	cli.Endpoint = w.endpoint
 }
