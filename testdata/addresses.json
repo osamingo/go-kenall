@@ -1,17 +1,17 @@
 {
-  "version": "2020-11-30",
+  "version": "2021-06-30",
   "data": [
     {
-      "jisx0402": "13101",
-      "old_code": "100",
-      "postal_code": "1008105",
+      "jisx0402": "13104",
+      "old_code": "16001",
+      "postal_code": "1638001",
       "prefecture_kana": "",
       "city_kana": "",
       "town_kana": "",
       "town_kana_raw": "",
       "prefecture": "東京都",
-      "city": "千代田区",
-      "town": "大手町",
+      "city": "新宿区",
+      "town": "西新宿",
       "koaza": "",
       "kyoto_street": "",
       "building": "",
@@ -20,12 +20,13 @@
       "town_addressed_koaza": false,
       "town_chome": false,
       "town_multi": false,
-      "town_raw": "大手町",
+      "town_raw": "西新宿",
       "corporation": {
-        "name": "チッソ　株式会社",
-        "name_kana": "ﾁﾂｿ ｶﾌﾞｼｷｶﾞｲｼﾔ",
-        "block_lot": "２丁目２－１（新大手町ビル）",
-        "post_office": "銀座",
+        "name": "東京都庁",
+        "name_kana": "トウキヨウトチヨウ",
+        "block_lot": "２丁目８－１",
+        "block_lot_num": "2-8-1",
+        "post_office": "新宿",
         "code_type": 0
       }
     }

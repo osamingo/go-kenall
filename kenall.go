@@ -90,11 +90,12 @@ type (
 		TownMulti          bool   `json:"town_multi"`
 		TownRaw            string `json:"town_raw"`
 		Corporation        struct {
-			Name       string `json:"name"`
-			NameKana   string `json:"name_kana"`
-			BlockLot   string `json:"block_lot"`
-			PostOffice string `json:"post_office"`
-			CodeType   int    `json:"code_type"`
+			Name        string `json:"name"`
+			NameKana    string `json:"name_kana"`
+			BlockLot    string `json:"block_lot"`
+			BlockLotNum string `json:"block_lot_num"`
+			PostOffice  string `json:"post_office"`
+			CodeType    int    `json:"code_type"`
 		} `json:"corporation"`
 	}
 	// A City is a city associated with the prefecture code defined by JIS X 0401.
