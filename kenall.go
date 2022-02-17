@@ -29,10 +29,10 @@ var (
 	ErrForbidden = fmt.Errorf("kenall: 403 forbidden error")
 	// ErrNotFound is an error value that will be returned when there is no resource to be retrieved.
 	ErrNotFound = fmt.Errorf("kenall: 404 not found error")
+	// ErrMethodNotAllowed is an error value that will be returned when the request calls a method that is not allowed.
+	ErrMethodNotAllowed = fmt.Errorf("kenall: 405 method not allowed error")
 	// ErrInternalServerError is an error value that will be returned when some error occurs in the kenall service.
 	ErrInternalServerError = fmt.Errorf("kenall: 500 internal server error")
-	// ErrBadGateway is an error value that will be returned when the kenall service is unavailable.
-	ErrBadGateway = fmt.Errorf("kenall: 502 bad gateway error")
 )
 
 type (
@@ -205,10 +205,10 @@ func (cli *Client) sendRequest(req *http.Request, res interface{}) error {
 		return ErrForbidden
 	case http.StatusNotFound:
 		return ErrNotFound
+	case http.StatusMethodNotAllowed:
+		return ErrMethodNotAllowed
 	case http.StatusInternalServerError:
 		return ErrInternalServerError
-	case http.StatusBadGateway:
-		return ErrBadGateway
 	default:
 		return fmt.Errorf("kenall: not registered in the error handling, http status code = %d", resp.StatusCode)
 	}

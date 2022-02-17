@@ -91,8 +91,8 @@ func TestClient_GetAddress(t *testing.T) {
 		"Unauthorized":          {endpoint: srv.URL, token: "bad_token", ctx: context.Background(), postalCode: "0000000", checkAsError: false, wantError: kenall.ErrUnauthorized, wantJISX0402: ""},
 		"Payment Required":      {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalCode: "4020000", checkAsError: false, wantError: kenall.ErrPaymentRequired, wantJISX0402: ""},
 		"Forbidden":             {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalCode: "4030000", checkAsError: false, wantError: kenall.ErrForbidden, wantJISX0402: ""},
+		"Method Not Allowed":    {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalCode: "4050000", checkAsError: false, wantError: kenall.ErrMethodNotAllowed, wantJISX0402: ""},
 		"Internal server error": {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalCode: "5000000", checkAsError: false, wantError: kenall.ErrInternalServerError, wantJISX0402: ""},
-		"Bad gateway":           {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalCode: "5020000", checkAsError: false, wantError: kenall.ErrBadGateway, wantJISX0402: ""},
 		"Unknown status code":   {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalCode: "5030000", checkAsError: true, wantError: fmt.Errorf(""), wantJISX0402: ""},
 		"Wrong endpoint":        {endpoint: "", token: "opencollector", ctx: context.Background(), postalCode: "0000000", checkAsError: true, wantError: &url.Error{}, wantJISX0402: ""},
 		"Wrong response":        {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalCode: "0000001", checkAsError: true, wantError: &json.MarshalerError{}, wantJISX0402: ""},
@@ -146,8 +146,8 @@ func TestClient_GetCity(t *testing.T) {
 		"Unauthorized":            {endpoint: srv.URL, token: "bad_token", ctx: context.Background(), prefectureCode: "00", checkAsError: false, wantError: kenall.ErrUnauthorized, wantJISX0402: ""},
 		"Payment Required":        {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), prefectureCode: "90", checkAsError: false, wantError: kenall.ErrPaymentRequired, wantJISX0402: ""},
 		"Forbidden":               {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), prefectureCode: "91", checkAsError: false, wantError: kenall.ErrForbidden, wantJISX0402: ""},
+		"Method Not Allowed":      {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), prefectureCode: "96", checkAsError: false, wantError: kenall.ErrMethodNotAllowed, wantJISX0402: ""},
 		"Internal server error":   {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), prefectureCode: "92", checkAsError: false, wantError: kenall.ErrInternalServerError, wantJISX0402: ""},
-		"Bad gateway":             {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), prefectureCode: "93", checkAsError: false, wantError: kenall.ErrBadGateway, wantJISX0402: ""},
 		"Unknown status code":     {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), prefectureCode: "94", checkAsError: true, wantError: fmt.Errorf(""), wantJISX0402: ""},
 		"Wrong endpoint":          {endpoint: "", token: "opencollector", ctx: context.Background(), prefectureCode: "00", checkAsError: true, wantError: &url.Error{}, wantJISX0402: ""},
 		"Wrong response":          {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), prefectureCode: "95", checkAsError: true, wantError: &json.MarshalerError{}, wantJISX0402: ""},
@@ -298,10 +298,10 @@ func handlePostalAPI(t *testing.T, w http.ResponseWriter, path string) {
 		w.WriteHeader(http.StatusPaymentRequired)
 	case "/postalCode/4030000":
 		w.WriteHeader(http.StatusForbidden)
+	case "/postalCode/4050000":
+		w.WriteHeader(http.StatusMethodNotAllowed)
 	case "/postalCode/5000000":
 		w.WriteHeader(http.StatusInternalServerError)
-	case "/postalCode/5020000":
-		w.WriteHeader(http.StatusBadGateway)
 	case "/postalCode/5030000":
 		w.WriteHeader(http.StatusServiceUnavailable)
 	case "/postalCode/0000001":
@@ -327,14 +327,14 @@ func handleCityAPI(t *testing.T, w http.ResponseWriter, path string) {
 		w.WriteHeader(http.StatusForbidden)
 	case "/cities/92":
 		w.WriteHeader(http.StatusInternalServerError)
-	case "/cities/93":
-		w.WriteHeader(http.StatusBadGateway)
 	case "/cities/94":
 		w.WriteHeader(http.StatusServiceUnavailable)
 	case "/cities/95":
 		if _, err := w.Write([]byte("wrong")); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
+	case "/cities/96":
+		w.WriteHeader(http.StatusMethodNotAllowed)
 	default:
 		w.WriteHeader(http.StatusNotFound)
 	}
