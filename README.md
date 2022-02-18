@@ -13,7 +13,7 @@ Unofficially [kenall](https://kenall.jp/) (ケンオール) client written by Go
 ## Install
 
 ```shell
-$ go get github.com/osamingo/go-kenall@v2.0.0
+$ go get github.com/osamingo/go-kenall/v2@v2.0.0
 ```
 
 ## APIs supported by this library
@@ -33,7 +33,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/osamingo/go-kenall"
+	"github.com/osamingo/go-kenall/v2"
 )
 
 func main() {
