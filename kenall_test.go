@@ -205,19 +205,19 @@ func TestClient_GetCorporation(t *testing.T) {
 		wantError       error
 		wantJISX0402    string
 	}{
-		"Normal case":           {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "2021001052596", checkAsError: false, wantError: nil, wantJISX0402: "13101"},
-		"Invalid postal code":   {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "alphabet", checkAsError: false, wantError: kenall.ErrInvalidArgument, wantJISX0402: ""},
-		"Not found":             {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "0000000000001", checkAsError: false, wantError: kenall.ErrNotFound, wantJISX0402: ""},
-		"Unauthorized":          {endpoint: srv.URL, token: "bad_token", ctx: context.Background(), corporateNumber: "2021001052596", checkAsError: false, wantError: kenall.ErrUnauthorized, wantJISX0402: ""},
-		"Payment Required":      {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "0000000000402", checkAsError: false, wantError: kenall.ErrPaymentRequired, wantJISX0402: ""},
-		"Forbidden":             {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "0000000000403", checkAsError: false, wantError: kenall.ErrForbidden, wantJISX0402: ""},
-		"Method Not Allowed":    {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "0000000000405", checkAsError: false, wantError: kenall.ErrMethodNotAllowed, wantJISX0402: ""},
-		"Internal server error": {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "0000000000500", checkAsError: false, wantError: kenall.ErrInternalServerError, wantJISX0402: ""},
-		"Unknown status code":   {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "0000000000503", checkAsError: true, wantError: fmt.Errorf(""), wantJISX0402: ""},
-		"Wrong endpoint":        {endpoint: "", token: "opencollector", ctx: context.Background(), corporateNumber: "2021001052596", checkAsError: true, wantError: &url.Error{}, wantJISX0402: ""},
-		"Wrong response":        {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "0000000000000", checkAsError: true, wantError: &json.MarshalerError{}, wantJISX0402: ""},
-		"Nil context":           {endpoint: srv.URL, token: "opencollector", ctx: nil, corporateNumber: "2021001052596", checkAsError: true, wantError: errors.New("net/http: nil Context"), wantJISX0402: ""},
-		"Timeout context":       {endpoint: srv.URL, token: "opencollector", ctx: toctx, corporateNumber: "2021001052596", checkAsError: true, wantError: kenall.ErrTimeout(context.DeadlineExceeded), wantJISX0402: ""},
+		"Normal case":              {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "2021001052596", checkAsError: false, wantError: nil, wantJISX0402: "13101"},
+		"Invalid corporate number": {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "alphabet", checkAsError: false, wantError: kenall.ErrInvalidArgument, wantJISX0402: ""},
+		"Not found":                {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "0000000000001", checkAsError: false, wantError: kenall.ErrNotFound, wantJISX0402: ""},
+		"Unauthorized":             {endpoint: srv.URL, token: "bad_token", ctx: context.Background(), corporateNumber: "2021001052596", checkAsError: false, wantError: kenall.ErrUnauthorized, wantJISX0402: ""},
+		"Payment Required":         {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "0000000000402", checkAsError: false, wantError: kenall.ErrPaymentRequired, wantJISX0402: ""},
+		"Forbidden":                {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "0000000000403", checkAsError: false, wantError: kenall.ErrForbidden, wantJISX0402: ""},
+		"Method Not Allowed":       {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "0000000000405", checkAsError: false, wantError: kenall.ErrMethodNotAllowed, wantJISX0402: ""},
+		"Internal server error":    {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "0000000000500", checkAsError: false, wantError: kenall.ErrInternalServerError, wantJISX0402: ""},
+		"Unknown status code":      {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "0000000000503", checkAsError: true, wantError: fmt.Errorf(""), wantJISX0402: ""},
+		"Wrong endpoint":           {endpoint: "", token: "opencollector", ctx: context.Background(), corporateNumber: "2021001052596", checkAsError: true, wantError: &url.Error{}, wantJISX0402: ""},
+		"Wrong response":           {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "0000000000000", checkAsError: true, wantError: &json.MarshalerError{}, wantJISX0402: ""},
+		"Nil context":              {endpoint: srv.URL, token: "opencollector", ctx: nil, corporateNumber: "2021001052596", checkAsError: true, wantError: errors.New("net/http: nil Context"), wantJISX0402: ""},
+		"Timeout context":          {endpoint: srv.URL, token: "opencollector", ctx: toctx, corporateNumber: "2021001052596", checkAsError: true, wantError: kenall.ErrTimeout(context.DeadlineExceeded), wantJISX0402: ""},
 	}
 
 	for name, c := range cases {
