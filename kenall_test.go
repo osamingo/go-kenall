@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/osamingo/go-kenall"
+	"github.com/osamingo/go-kenall/v2"
 )
 
 var (

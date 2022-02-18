@@ -3,7 +3,7 @@ package kenall_test
 import (
 	"testing"
 
-	"github.com/osamingo/go-kenall"
+	"github.com/osamingo/go-kenall/v2"
 )
 
 func TestWithHTTPClient(t *testing.T) {

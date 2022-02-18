@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/osamingo/go-kenall"
+	"github.com/osamingo/go-kenall/v2"
 )
 
 func TestVersion_UnmarshalJSON(t *testing.T) {
