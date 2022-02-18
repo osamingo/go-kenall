@@ -60,6 +60,7 @@ type (
 	}
 )
 
+// nolint: gochecknoglobals
 var nullLiteral = []byte("null")
 
 // UnmarshalJSON implements json.Unmarshaler interface.
@@ -84,11 +85,11 @@ func (ns *NullString) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	err := json.Unmarshal(data, &ns.String)
-	if err == nil {
-		ns.Valid = true
-		return nil
+	if err := json.Unmarshal(data, &ns.String); err != nil {
+		return fmt.Errorf("kenall: failed to parse NullString: %w", err)
 	}
 
-	return err
+	ns.Valid = true
+
+	return nil
 }
