@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/osamingo/go-kenall/workflows/CI/badge.svg)](https://github.com/osamingo/go-kenall/actions?query=workflow%3ACI)
 [![codecov](https://codecov.io/gh/osamingo/go-kenall/branch/main/graph/badge.svg?token=gUDT8ydUMm)](https://codecov.io/gh/osamingo/go-kenall)
-[![Go Report Card](https://goreportcard.com/badge/github.com/osamingo/go-kenall)](https://goreportcard.com/report/github.com/osamingo/go-kenall)
+[![Go Report Card](https://goreportcard.com/badge/github.com/osamingo/go-kenall/v2)](https://goreportcard.com/report/github.com/osamingo/go-kenall/v2)
 [![Go Reference](https://pkg.go.dev/badge/github.com/osamingo/go-kenall.svg)](https://pkg.go.dev/github.com/osamingo/go-kenall/v2)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/osamingo/go-kenall/blob/main/LICENSE)
 
