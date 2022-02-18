@@ -1,6 +1,8 @@
 package kenall
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -8,6 +10,14 @@ import (
 type (
 	// A Version is the version-controlled date of the retrieved data.
 	Version time.Time
+	// A NullString represents a string that may be null.
+	NullString struct {
+		String string
+		Valid  bool // Valid is true if String is not NULL
+	}
+)
+
+type (
 	// An Address is an address associated with the postal code defined by JP POST.
 	Address struct {
 		JISX0402           string `json:"jisx0402"`
@@ -30,12 +40,12 @@ type (
 		TownMulti          bool   `json:"town_multi"`
 		TownRaw            string `json:"town_raw"`
 		Corporation        struct {
-			Name        string `json:"name"`
-			NameKana    string `json:"name_kana"`
-			BlockLot    string `json:"block_lot"`
-			BlockLotNum string `json:"block_lot_num"`
-			PostOffice  string `json:"post_office"`
-			CodeType    int    `json:"code_type"`
+			Name        string      `json:"name"`
+			NameKana    string      `json:"name_kana"`
+			BlockLot    string      `json:"block_lot"`
+			BlockLotNum NullString  `json:"block_lot_num"`
+			PostOffice  string      `json:"post_office"`
+			CodeType    json.Number `json:"code_type"`
 		} `json:"corporation"`
 	}
 	// A City is a city associated with the prefecture code defined by JIS X 0401.
@@ -50,9 +60,11 @@ type (
 	}
 )
 
+var nullLiteral = []byte("null")
+
 // UnmarshalJSON implements json.Unmarshaler interface.
 func (v *Version) UnmarshalJSON(data []byte) error {
-	if string(data) == "null" {
+	if bytes.Equal(data, nullLiteral) {
 		return nil
 	}
 
@@ -64,4 +76,19 @@ func (v *Version) UnmarshalJSON(data []byte) error {
 	*v = Version(t)
 
 	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler interface.
+func (ns *NullString) UnmarshalJSON(data []byte) error {
+	if bytes.Equal(data, nullLiteral) {
+		return nil
+	}
+
+	err := json.Unmarshal(data, &ns.String)
+	if err == nil {
+		ns.Valid = true
+		return nil
+	}
+
+	return err
 }

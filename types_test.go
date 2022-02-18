@@ -37,3 +37,38 @@ func TestVersion_UnmarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestNullString_UnmarshalJSON(t *testing.T) {
+	t.Parallel()
+
+	cases := map[string]struct {
+		give      string
+		want      string
+		wantError bool
+		isValid   bool
+	}{
+		"Give string": {give: `"123"`, want: "123", wantError: false, isValid: true},
+		"Give number": {give: `123`, want: "", wantError: true, isValid: true},
+		"Give empty":  {give: `""`, want: "", wantError: false, isValid: true},
+		"Give null":   {give: `null`, want: "", wantError: false, isValid: false},
+	}
+
+	for name, c := range cases {
+		c := c
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			ns := &kenall.NullString{}
+			err := ns.UnmarshalJSON([]byte(c.give))
+			if err == nil == c.wantError {
+				t.Fatalf("give: %v, want: %v", err, c.wantError)
+			}
+			if !c.isValid && ns.Valid {
+				t.Errorf("give: %v, want: %v", ns.Valid, c.isValid)
+			} else if c.want != ns.String {
+				t.Errorf("give: %v, want: %v", ns.String, c.want)
+			}
+		})
+	}
+}
