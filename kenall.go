@@ -148,7 +148,8 @@ func (cli *Client) GetCity(ctx context.Context, prefectureCode string) (*GetCity
 	return &res, nil
 }
 
-// A GetCorporationResponse is a result from the kenall service of the API to get the corporation from the corporate number.
+// A GetCorporationResponse is a result from the kenall service of the API to get the corporation
+// from the corporate number.
 type GetCorporationResponse struct {
 	Version     Version      `json:"version"`
 	Corporation *Corporation `json:"data"`
