@@ -60,8 +60,13 @@ type (
 	}
 )
 
-// nolint: gochecknoglobals
-var nullLiteral = []byte("null")
+var (
+	// nolint: gochecknoglobals
+	nullLiteral = []byte("null")
+
+	_ json.Unmarshaler = (*Version)(nil)
+	_ json.Unmarshaler = (*NullString)(nil)
+)
 
 // UnmarshalJSON implements json.Unmarshaler interface.
 func (v *Version) UnmarshalJSON(data []byte) error {
