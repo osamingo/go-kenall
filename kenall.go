@@ -31,17 +31,6 @@ type (
 	ClientOption interface {
 		Apply(*Client)
 	}
-
-	// A GetAddressResponse is a result from the kenall service of the API to get the address from the postal code.
-	GetAddressResponse struct {
-		Version   Version    `json:"version"`
-		Addresses []*Address `json:"data"`
-	}
-	// A GetCityResponse is a result from the kenall service of the API to get the city from the prefecture code.
-	GetCityResponse struct {
-		Version Version `json:"version"`
-		Cities  []*City `json:"data"`
-	}
 )
 
 // NewClient creates kenall.Client with the authorization token provided by the kenall service.
@@ -61,48 +50,6 @@ func NewClient(token string, opts ...ClientOption) (*Client, error) {
 	}
 
 	return cli, nil
-}
-
-// GetAddress requests to the kenall service to get the address by postal code.
-func (cli *Client) GetAddress(ctx context.Context, postalCode string) (*GetAddressResponse, error) {
-	if _, err := strconv.Atoi(postalCode); err != nil || len(postalCode) != 7 {
-		return nil, ErrInvalidArgument
-	}
-
-	const path = "/postalcode/"
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+path+postalCode, nil)
-	if err != nil {
-		return nil, fmt.Errorf("kenall: failed to generate http request: %w", err)
-	}
-
-	var res GetAddressResponse
-	if err := cli.sendRequest(req, &res); err != nil {
-		return nil, fmt.Errorf("kenall: failed to send request for kenall service: %w", err)
-	}
-
-	return &res, nil
-}
-
-// GetCity requests to the kenall service to get the city by prefecture code.
-func (cli *Client) GetCity(ctx context.Context, prefectureCode string) (*GetCityResponse, error) {
-	if _, err := strconv.Atoi(prefectureCode); err != nil || len(prefectureCode) != 2 {
-		return nil, ErrInvalidArgument
-	}
-
-	const path = "/cities/"
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+path+prefectureCode, nil)
-	if err != nil {
-		return nil, fmt.Errorf("kenall: failed to generate http request: %w", err)
-	}
-
-	var res GetCityResponse
-	if err := cli.sendRequest(req, &res); err != nil {
-		return nil, fmt.Errorf("kenall: failed to send request for kenall service: %w", err)
-	}
-
-	return &res, nil
 }
 
 // nolint: cyclop,goerr113
@@ -145,4 +92,85 @@ func (cli *Client) sendRequest(req *http.Request, res interface{}) error {
 	}
 
 	return nil
+}
+
+// A GetAddressResponse is a result from the kenall service of the API to get the address from the postal code.
+type GetAddressResponse struct {
+	Version   Version    `json:"version"`
+	Addresses []*Address `json:"data"`
+}
+
+// GetAddress requests to the kenall service to get the address by postal code.
+func (cli *Client) GetAddress(ctx context.Context, postalCode string) (*GetAddressResponse, error) {
+	if _, err := strconv.Atoi(postalCode); err != nil || len(postalCode) != 7 {
+		return nil, ErrInvalidArgument
+	}
+
+	const path = "/postalcode/"
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+path+postalCode, nil)
+	if err != nil {
+		return nil, fmt.Errorf("kenall: failed to generate http request: %w", err)
+	}
+
+	var res GetAddressResponse
+	if err := cli.sendRequest(req, &res); err != nil {
+		return nil, fmt.Errorf("kenall: failed to send request for kenall service: %w", err)
+	}
+
+	return &res, nil
+}
+
+// A GetCityResponse is a result from the kenall service of the API to get the city from the prefecture code.
+type GetCityResponse struct {
+	Version Version `json:"version"`
+	Cities  []*City `json:"data"`
+}
+
+// GetCity requests to the kenall service to get the city by prefecture code.
+func (cli *Client) GetCity(ctx context.Context, prefectureCode string) (*GetCityResponse, error) {
+	if _, err := strconv.Atoi(prefectureCode); err != nil || len(prefectureCode) != 2 {
+		return nil, ErrInvalidArgument
+	}
+
+	const path = "/cities/"
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+path+prefectureCode, nil)
+	if err != nil {
+		return nil, fmt.Errorf("kenall: failed to generate http request: %w", err)
+	}
+
+	var res GetCityResponse
+	if err := cli.sendRequest(req, &res); err != nil {
+		return nil, fmt.Errorf("kenall: failed to send request for kenall service: %w", err)
+	}
+
+	return &res, nil
+}
+
+// A GetCorporationResponse is a result from the kenall service of the API to get the corporation from the corporate number.
+type GetCorporationResponse struct {
+	Version     Version      `json:"version"`
+	Corporation *Corporation `json:"data"`
+}
+
+// GetCorporation requests to the kenall service to get the corporation by corporate number.
+func (cli *Client) GetCorporation(ctx context.Context, corporateNumber string) (*GetCorporationResponse, error) {
+	if _, err := strconv.Atoi(corporateNumber); err != nil || len(corporateNumber) != 13 {
+		return nil, ErrInvalidArgument
+	}
+
+	const path = "/houjinbangou/"
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+path+corporateNumber, nil)
+	if err != nil {
+		return nil, fmt.Errorf("kenall: failed to generate http request: %w", err)
+	}
+
+	var res GetCorporationResponse
+	if err := cli.sendRequest(req, &res); err != nil {
+		return nil, fmt.Errorf("kenall: failed to send request for kenall service: %w", err)
+	}
+
+	return &res, nil
 }
