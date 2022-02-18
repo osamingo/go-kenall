@@ -58,6 +58,43 @@ type (
 		Prefecture     string `json:"prefecture"`
 		City           string `json:"city"`
 	}
+	// A Corporation is a corporation associated with the corporate number defined by National Tax Agency Japan.
+	Corporation struct {
+		PublishedDate            string      `json:"published_date"`
+		SequenceNumber           json.Number `json:"sequence_number"`
+		CorporateNumber          string      `json:"corporate_number"`
+		Process                  json.Number `json:"process"`
+		Correct                  json.Number `json:"correct"`
+		UpdateDate               string      `json:"update_date"`
+		ChangeDate               string      `json:"change_date"`
+		Name                     string      `json:"name"`
+		NameImageID              NullString  `json:"name_image_id"`
+		Kind                     string      `json:"kind"`
+		PrefectureName           string      `json:"prefecture_name"`
+		CityName                 string      `json:"city_name"`
+		StreetNumber             string      `json:"street_number"`
+		Town                     NullString  `json:"town"`
+		KyotoStreet              NullString  `json:"kyoto_street"`
+		BlockLotNum              NullString  `json:"block_lot_num"`
+		Building                 NullString  `json:"building"`
+		FloorRoom                NullString  `json:"floor_room"`
+		AddressImageID           NullString  `json:"address_image_id"`
+		JISX0402                 string      `json:"jisx0402"`
+		PostCode                 string      `json:"post_code"`
+		AddressOutside           string      `json:"address_outside"`
+		AddressOutsideImageID    NullString  `json:"address_outside_image_id"`
+		CloseDate                NullString  `json:"close_date"`
+		CloseCause               NullString  `json:"close_cause"`
+		SuccessorCorporateNumber NullString  `json:"successor_corporate_number"`
+		ChangeCause              string      `json:"change_cause"`
+		AssignmentDate           string      `json:"assignment_date"`
+		EnName                   string      `json:"en_name"`
+		EnPrefectureName         string      `json:"en_prefecture_name"`
+		EnAddressLine            NullString  `json:"en_address_line"`
+		EnAddressOutside         NullString  `json:"en_address_outside"`
+		Furigana                 string      `json:"furigana"`
+		Hihyoji                  string      `json:"hihyoji"`
+	}
 )
 
 var (
