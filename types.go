@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net"
 	"time"
 )
 
@@ -95,6 +96,12 @@ type (
 		Furigana                 string      `json:"furigana"`
 		Hihyoji                  string      `json:"hihyoji"`
 	}
+	// A RemoteAddress is an IP address from access point.
+	RemoteAddress struct {
+		Type    string      `json:"type"`
+		Address string      `json:"address"`
+		IPAddr  *net.IPAddr `json:"-"`
+	}
 )
 
 var (
@@ -103,6 +110,9 @@ var (
 
 	_ json.Unmarshaler = (*Version)(nil)
 	_ json.Unmarshaler = (*NullString)(nil)
+	_ json.Unmarshaler = (*RemoteAddress)(nil)
+
+	_ net.Addr = (*RemoteAddress)(nil)
 )
 
 // UnmarshalJSON implements json.Unmarshaler interface.
@@ -134,4 +144,42 @@ func (ns *NullString) UnmarshalJSON(data []byte) error {
 	ns.Valid = true
 
 	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler interface.
+func (ra *RemoteAddress) UnmarshalJSON(data []byte) error {
+	type Alias RemoteAddress
+
+	tmp := &struct{ *Alias }{Alias: (*Alias)(ra)}
+	if err := json.Unmarshal(data, &tmp); err != nil {
+		return fmt.Errorf("kenall: failed to parse RemoteAddress: %w", err)
+	}
+
+	switch tmp.Type {
+	case "v4":
+		var err error
+		if tmp.IPAddr, err = net.ResolveIPAddr("ip4", tmp.Address); err != nil {
+			return fmt.Errorf("kenall: failde to resolve IP address: %w", err)
+		}
+	case "v6":
+		var err error
+		if tmp.IPAddr, err = net.ResolveIPAddr("ip6", tmp.Address); err != nil {
+			return fmt.Errorf("kenall: failed to resolve IP address: %w", err)
+		}
+	default:
+		// nolint: goerr113
+		return fmt.Errorf("kenall: undefined type of RemoteAddress, type = %s", tmp.Type)
+	}
+
+	return nil
+}
+
+// Network implements net.Addr interface.
+func (ra *RemoteAddress) Network() string {
+	return ra.IPAddr.Network()
+}
+
+// RemoteAddress implements net.Addr and fmt.Stringer interface.
+func (ra *RemoteAddress) String() string {
+	return ra.IPAddr.String()
 }

@@ -72,3 +72,48 @@ func TestNullString_UnmarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestRemoteAddress_UnmarshalJSON(t *testing.T) {
+	t.Parallel()
+
+	cases := map[string]struct {
+		give        string
+		wantError   bool
+		wantNetwork string
+		wantAddress string
+	}{
+		"Give ip4":              {give: `{"type":"v4","address":"127.0.0.1"}`, wantError: false, wantNetwork: "ip", wantAddress: "127.0.0.1"},
+		"Give ip6":              {give: `{"type":"v6","address":"::1"}`, wantError: false, wantNetwork: "ip", wantAddress: "::1"},
+		"Give ip4 wrong object": {give: `{"type":"v4","address":"wrong"}`, wantError: true, wantNetwork: "", wantAddress: ""},
+		"Give ip6 wrong object": {give: `{"type":"v6","address":"wrong"}`, wantError: true, wantNetwork: "", wantAddress: ""},
+		"Give undefined type":   {give: `{"type":"v8","address":"::1"}`, wantError: true, wantNetwork: "", wantAddress: ""},
+		"Give empty object":     {give: `{}`, wantError: true, wantNetwork: "", wantAddress: ""},
+		"Give empty":            {give: ``, wantError: true, wantNetwork: "", wantAddress: ""},
+	}
+
+	for name, c := range cases {
+		c := c
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			ra := &kenall.RemoteAddress{}
+			err := ra.UnmarshalJSON([]byte(c.give))
+			if c.wantError {
+				if err == nil {
+					t.Errorf("an error should not be nil")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("an error should be nil, err = %s", err)
+			}
+			if ra.Network() != c.wantNetwork {
+				t.Errorf("give: %s, want: %s", ra.Network(), c.wantNetwork)
+			}
+			if ra.String() != c.wantAddress {
+				t.Errorf("give: %s, want: %s", ra.String(), c.wantAddress)
+			}
+		})
+	}
+}
