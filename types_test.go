@@ -103,6 +103,7 @@ func TestRemoteAddress_UnmarshalJSON(t *testing.T) {
 				if err == nil {
 					t.Errorf("an error should not be nil")
 				}
+
 				return
 			}
 			if err != nil {
