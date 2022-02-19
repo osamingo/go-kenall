@@ -25,6 +25,8 @@ var (
 	cityResponse []byte
 	//go:embed testdata/corporation.json
 	corporationResponse []byte
+	//go:embed testdata/whoami.json
+	whoamiResponse []byte
 )
 
 func TestNewClient(t *testing.T) {
@@ -244,6 +246,55 @@ func TestClient_GetCorporation(t *testing.T) {
 	}
 }
 
+func TestClient_GetWhoami(t *testing.T) {
+	t.Parallel()
+
+	toctx, cancel := context.WithTimeout(context.Background(), time.Nanosecond)
+	srv := runTestingServer(t)
+	t.Cleanup(func() {
+		cancel()
+		srv.Close()
+	})
+
+	cases := map[string]struct {
+		endpoint     string
+		token        string
+		ctx          context.Context
+		checkAsError bool
+		wantError    error
+		wantAddr     string
+	}{
+		"Normal case":     {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), checkAsError: false, wantError: nil, wantAddr: "192.168.0.1"},
+		"Unauthorized":    {endpoint: srv.URL, token: "bad_token", ctx: context.Background(), checkAsError: false, wantError: kenall.ErrUnauthorized, wantAddr: ""},
+		"Wrong endpoint":  {endpoint: "", token: "opencollector", ctx: context.Background(), checkAsError: true, wantError: &url.Error{}, wantAddr: ""},
+		"Nil context":     {endpoint: srv.URL, token: "opencollector", ctx: nil, checkAsError: true, wantError: errors.New("net/http: nil Context"), wantAddr: ""},
+		"Timeout context": {endpoint: srv.URL, token: "opencollector", ctx: toctx, checkAsError: true, wantError: kenall.ErrTimeout(context.DeadlineExceeded), wantAddr: ""},
+	}
+
+	for name, c := range cases {
+		c := c
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			cli, err := kenall.NewClient(c.token, kenall.WithEndpoint(c.endpoint))
+			if err != nil {
+				t.Error(err)
+			}
+
+			res, err := cli.GetWhoami(c.ctx)
+			if c.checkAsError && !errors.As(err, &c.wantError) {
+				t.Errorf("give: %v, want: %v", err, c.wantError)
+			} else if !errors.Is(err, c.wantError) {
+				t.Errorf("give: %v, want: %v", err, c.wantError)
+			}
+			if res != nil && res.RemoteAddress.String() != c.wantAddr {
+				t.Errorf("give: %v, want: %v", res.RemoteAddress.String(), c.wantAddr)
+			}
+		})
+	}
+}
+
 func ExampleClient_GetAddress() {
 	if testing.Short() {
 		// stab
@@ -325,6 +376,31 @@ func ExampleClient_GetCorporation() {
 	// 東京都 千代田区
 }
 
+func ExampleClient_GetWhoami() {
+	if testing.Short() {
+		// stab
+		fmt.Println("ip")
+
+		return
+	}
+
+	// NOTE: Please set a valid token in the environment variable and run it.
+	cli, err := kenall.NewClient(os.Getenv("KENALL_AUTHORIZATION_TOKEN"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := cli.GetWhoami(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	raddr := res.RemoteAddress
+	fmt.Println(raddr.IPAddr.Network())
+	// Output:
+	// ip
+}
+
 func runTestingServer(t *testing.T) *httptest.Server {
 	t.Helper()
 
@@ -344,6 +420,8 @@ func runTestingServer(t *testing.T) *httptest.Server {
 			handleCityAPI(t, w, path)
 		case strings.HasPrefix(path, "/houjinbangou/"):
 			handleCorporationAPI(t, w, path)
+		case strings.HasPrefix(path, "/whoami"):
+			handleWhoamiAPI(t, w, path)
 		default:
 			w.WriteHeader(http.StatusNotFound)
 		}
@@ -424,6 +502,19 @@ func handleCorporationAPI(t *testing.T, w http.ResponseWriter, path string) {
 		w.WriteHeader(http.StatusServiceUnavailable)
 	case "/houjinbangou/0000000000000":
 		if _, err := w.Write([]byte("wrong")); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	default:
+		w.WriteHeader(http.StatusNotFound)
+	}
+}
+
+func handleWhoamiAPI(t *testing.T, w http.ResponseWriter, path string) {
+	t.Helper()
+
+	switch path {
+	case "/whoami":
+		if _, err := w.Write(whoamiResponse); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 	default:
