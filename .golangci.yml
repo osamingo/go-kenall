@@ -5,6 +5,14 @@ linters-settings:
     ignore: io:^Copy.*
   misspell:
     locale: US
+  tagliatelle:
+    case:
+      rules:
+        json: snake
+  ireturn:
+    allow:
+      - error
+      - github\.com\/osamingo\/go-kenall\/v2\.ClientOption
 
 linters:
   enable-all: true
@@ -21,6 +29,7 @@ issues:
         - goerr113
         - exhaustivestruct
         - cyclop
-        - gochecknoglobals
         - dupl
         - ifshort
+        - varnamelen
+        - containedctx
