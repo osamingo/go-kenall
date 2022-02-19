@@ -52,7 +52,7 @@ func NewClient(token string, opts ...ClientOption) (*Client, error) {
 	return cli, nil
 }
 
-// nolint: cyclop,goerr113
+// nolint: cyclop
 func (cli *Client) sendRequest(req *http.Request, res interface{}) error {
 	req.Header.Add("Authorization", "token "+cli.token)
 
@@ -88,6 +88,7 @@ func (cli *Client) sendRequest(req *http.Request, res interface{}) error {
 	case http.StatusInternalServerError:
 		return ErrInternalServerError
 	default:
+		// nolint: goerr113
 		return fmt.Errorf("kenall: not registered in the error handling, http status code = %d", resp.StatusCode)
 	}
 
@@ -169,6 +170,28 @@ func (cli *Client) GetCorporation(ctx context.Context, corporateNumber string) (
 	}
 
 	var res GetCorporationResponse
+	if err := cli.sendRequest(req, &res); err != nil {
+		return nil, fmt.Errorf("kenall: failed to send request for kenall service: %w", err)
+	}
+
+	return &res, nil
+}
+
+// A GetWhoamiResponse is a result from the kenall service of the API to get whoami information.
+type GetWhoamiResponse struct {
+	RemoteAddress *RemoteAddress `json:"remote_addr"`
+}
+
+// GetWhoami requests to the kenall service to get the whoami information by access point.
+func (cli *Client) GetWhoami(ctx context.Context) (*GetWhoamiResponse, error) {
+	const path = "/whoami"
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+path, nil)
+	if err != nil {
+		return nil, fmt.Errorf("kenall: failed to generate http request: %w", err)
+	}
+
+	var res GetWhoamiResponse
 	if err := cli.sendRequest(req, &res); err != nil {
 		return nil, fmt.Errorf("kenall: failed to send request for kenall service: %w", err)
 	}
