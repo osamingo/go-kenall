@@ -66,8 +66,8 @@ func (cli *Client) sendRequest(req *http.Request, res interface{}) error {
 	}
 
 	defer func() {
-		_ = resp.Body.Close()
 		_, _ = io.Copy(ioutil.Discard, resp.Body)
+		_ = resp.Body.Close()
 	}()
 
 	switch resp.StatusCode {
