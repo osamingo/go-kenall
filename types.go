@@ -3,6 +3,7 @@ package kenall
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"time"
@@ -168,7 +169,7 @@ func (ra *RemoteAddress) UnmarshalJSON(data []byte) error {
 		}
 	default:
 		// nolint: goerr113
-		return fmt.Errorf("kenall: undefined type of RemoteAddress, type = %s", tmp.Type)
+		return errors.New("kenall: undefined type of RemoteAddress, type = " + tmp.Type)
 	}
 
 	return nil
