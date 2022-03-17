@@ -118,3 +118,45 @@ func TestRemoteAddress_UnmarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestHoliday_UnmarshalJSON(t *testing.T) {
+	t.Parallel()
+
+	cases := map[string]struct {
+		give      string
+		wantTitle string
+		wantTime  time.Time
+		wantError bool
+	}{
+		"Normal case":            {give: `{"title":"元日","date":"2022-01-01","day_of_week":6,"day_of_week_text":"saturday"}`, wantTitle: "元日", wantTime: time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC), wantError: false},
+		"Unexpected JSON value":  {give: `{"title":2,"date":"2022-01-01","day_of_week":6,"day_of_week_text":"saturday"}`, wantTitle: "", wantTime: time.Time{}, wantError: true},
+		"Unexpected date format": {give: `{"title":"元日","date":"2022/01/01","day_of_week":6,"day_of_week_text":"saturday"}`, wantTitle: "", wantTime: time.Time{}, wantError: true},
+	}
+
+	for name, c := range cases {
+		c := c
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			h := &kenall.Holiday{}
+			err := h.UnmarshalJSON([]byte(c.give))
+			if c.wantError {
+				if err == nil {
+					t.Errorf("an error should not be nil")
+				}
+
+				return
+			}
+			if err != nil {
+				t.Fatalf("an error should be nil, err = %s", err)
+			}
+			if h.Title != c.wantTitle {
+				t.Errorf("give: %s, want: %s", h.Title, c.wantTitle)
+			}
+			if !h.Time.Equal(c.wantTime) {
+				t.Errorf("give: %s, want: %s", h.Time, c.wantTime)
+			}
+		})
+	}
+}
