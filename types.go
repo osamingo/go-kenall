@@ -103,6 +103,11 @@ type (
 		Address string      `json:"address"`
 		IPAddr  *net.IPAddr `json:"-"`
 	}
+	// A Holiday is Japan's holiday detail.
+	Holiday struct {
+		Title string
+		time.Time
+	}
 )
 
 var (
@@ -112,6 +117,7 @@ var (
 	_ json.Unmarshaler = (*Version)(nil)
 	_ json.Unmarshaler = (*NullString)(nil)
 	_ json.Unmarshaler = (*RemoteAddress)(nil)
+	_ json.Unmarshaler = (*Holiday)(nil)
 
 	_ net.Addr = (*RemoteAddress)(nil)
 )
@@ -183,4 +189,27 @@ func (ra *RemoteAddress) Network() string {
 // RemoteAddress implements net.Addr and fmt.Stringer interface.
 func (ra *RemoteAddress) String() string {
 	return ra.IPAddr.String()
+}
+
+// UnmarshalJSON implements json.Unmarshaler interface.
+func (h *Holiday) UnmarshalJSON(data []byte) error {
+	type v struct {
+		Title string `json:"title"`
+		Date  string `json:"date"`
+	}
+
+	var tmp v
+	if err := json.Unmarshal(data, &tmp); err != nil {
+		return fmt.Errorf("kenall: failed to parse Holiday: %w", err)
+	}
+
+	t, err := time.Parse(RFC3339DateFormat, tmp.Date)
+	if err != nil {
+		return fmt.Errorf("kenall: failed to parse Holiday: %w", err)
+	}
+
+	h.Title = tmp.Title
+	h.Time = t
+
+	return nil
 }
