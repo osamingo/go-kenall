@@ -203,13 +203,12 @@ func (h *Holiday) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("kenall: failed to parse Holiday: %w", err)
 	}
 
-	t, err := time.Parse(RFC3339DateFormat, tmp.Date)
-	if err != nil {
+	var err error
+	if h.Time, err = time.Parse(RFC3339DateFormat, tmp.Date); err != nil {
 		return fmt.Errorf("kenall: failed to parse Holiday: %w", err)
 	}
 
 	h.Title = tmp.Title
-	h.Time = t
 
 	return nil
 }
