@@ -1,0 +1,100 @@
+{
+  "data": [
+    {
+      "title": "元日",
+      "date": "2022-01-01",
+      "day_of_week": 6,
+      "day_of_week_text": "saturday"
+    },
+    {
+      "title": "成人の日",
+      "date": "2022-01-10",
+      "day_of_week": 1,
+      "day_of_week_text": "monday"
+    },
+    {
+      "title": "建国記念の日",
+      "date": "2022-02-11",
+      "day_of_week": 5,
+      "day_of_week_text": "friday"
+    },
+    {
+      "title": "天皇誕生日",
+      "date": "2022-02-23",
+      "day_of_week": 3,
+      "day_of_week_text": "wednesday"
+    },
+    {
+      "title": "春分の日",
+      "date": "2022-03-21",
+      "day_of_week": 1,
+      "day_of_week_text": "monday"
+    },
+    {
+      "title": "昭和の日",
+      "date": "2022-04-29",
+      "day_of_week": 5,
+      "day_of_week_text": "friday"
+    },
+    {
+      "title": "憲法記念日",
+      "date": "2022-05-03",
+      "day_of_week": 2,
+      "day_of_week_text": "tuesday"
+    },
+    {
+      "title": "みどりの日",
+      "date": "2022-05-04",
+      "day_of_week": 3,
+      "day_of_week_text": "wednesday"
+    },
+    {
+      "title": "こどもの日",
+      "date": "2022-05-05",
+      "day_of_week": 4,
+      "day_of_week_text": "thursday"
+    },
+    {
+      "title": "海の日",
+      "date": "2022-07-18",
+      "day_of_week": 1,
+      "day_of_week_text": "monday"
+    },
+    {
+      "title": "山の日",
+      "date": "2022-08-11",
+      "day_of_week": 4,
+      "day_of_week_text": "thursday"
+    },
+    {
+      "title": "敬老の日",
+      "date": "2022-09-19",
+      "day_of_week": 1,
+      "day_of_week_text": "monday"
+    },
+    {
+      "title": "秋分の日",
+      "date": "2022-09-23",
+      "day_of_week": 5,
+      "day_of_week_text": "friday"
+    },
+    {
+      "title": "スポーツの日",
+      "date": "2022-10-10",
+      "day_of_week": 1,
+      "day_of_week_text": "monday"
+    },
+    {
+      "title": "文化の日",
+      "date": "2022-11-03",
+      "day_of_week": 4,
+      "day_of_week_text": "thursday"
+    },
+    {
+      "title": "勤労感謝の日",
+      "date": "2022-11-23",
+      "day_of_week": 3,
+      "day_of_week_text": "wednesday"
+    }
+  ]
+}
