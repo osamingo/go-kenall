@@ -8,8 +8,10 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
+	"time"
 )
 
 const (
@@ -107,9 +109,7 @@ func (cli *Client) GetAddress(ctx context.Context, postalCode string) (*GetAddre
 		return nil, ErrInvalidArgument
 	}
 
-	const path = "/postalcode/"
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+path+postalCode, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+"/postalcode/"+postalCode, nil)
 	if err != nil {
 		return nil, fmt.Errorf("kenall: failed to generate http request: %w", err)
 	}
@@ -134,9 +134,7 @@ func (cli *Client) GetCity(ctx context.Context, prefectureCode string) (*GetCity
 		return nil, ErrInvalidArgument
 	}
 
-	const path = "/cities/"
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+path+prefectureCode, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+"/cities/"+prefectureCode, nil)
 	if err != nil {
 		return nil, fmt.Errorf("kenall: failed to generate http request: %w", err)
 	}
@@ -162,9 +160,7 @@ func (cli *Client) GetCorporation(ctx context.Context, corporateNumber string) (
 		return nil, ErrInvalidArgument
 	}
 
-	const path = "/houjinbangou/"
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+path+corporateNumber, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+"/houjinbangou/"+corporateNumber, nil)
 	if err != nil {
 		return nil, fmt.Errorf("kenall: failed to generate http request: %w", err)
 	}
@@ -184,9 +180,7 @@ type GetWhoamiResponse struct {
 
 // GetWhoami requests to the kenall service to get the whoami information by access point.
 func (cli *Client) GetWhoami(ctx context.Context) (*GetWhoamiResponse, error) {
-	const path = "/whoami"
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+path, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+"/whoami", nil)
 	if err != nil {
 		return nil, fmt.Errorf("kenall: failed to generate http request: %w", err)
 	}
@@ -197,4 +191,41 @@ func (cli *Client) GetWhoami(ctx context.Context) (*GetWhoamiResponse, error) {
 	}
 
 	return &res, nil
+}
+
+// A GetHolidaysResponse is a result from the kenall service of the API to get the holidays.
+type GetHolidaysResponse struct {
+	Holidays []*Holiday `json:"data"`
+}
+
+func (cli *Client) getHolidays(ctx context.Context, v url.Values) (*GetHolidaysResponse, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+"/holidays?"+v.Encode(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("kenall: failed to generate http request: %w", err)
+	}
+
+	var res GetHolidaysResponse
+	if err := cli.sendRequest(req, &res); err != nil {
+		return nil, fmt.Errorf("kenall: failed to send request for kenall service: %w", err)
+	}
+
+	return &res, nil
+}
+
+// GetHolidays requests to the kenall service to get all holidays after 1970.
+func (cli *Client) GetHolidays(ctx context.Context) (*GetHolidaysResponse, error) {
+	return cli.getHolidays(ctx, nil)
+}
+
+// GetHolidaysByYear requests to the kenall service to get holidays for the year.
+func (cli *Client) GetHolidaysByYear(ctx context.Context, year int) (*GetHolidaysResponse, error) {
+	return cli.getHolidays(ctx, url.Values{"year": []string{strconv.Itoa(year)}})
+}
+
+// GetHolidaysByPeriod requests to the kenall service to get holidays for the period.
+func (cli *Client) GetHolidaysByPeriod(ctx context.Context, from, to time.Time) (*GetHolidaysResponse, error) {
+	return cli.getHolidays(ctx, url.Values{
+		"from": []string{from.Format(RFC3339DateFormat)},
+		"to":   []string{to.Format(RFC3339DateFormat)},
+	})
 }
