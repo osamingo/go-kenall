@@ -27,6 +27,8 @@ var (
 	corporationResponse []byte
 	//go:embed testdata/whoami.json
 	whoamiResponse []byte
+	//go:embed testdata/holidays.json
+	holidaysResponse []byte
 )
 
 func TestNewClient(t *testing.T) {
@@ -295,6 +297,168 @@ func TestClient_GetWhoami(t *testing.T) {
 	}
 }
 
+func TestClient_GetHolidays(t *testing.T) {
+	t.Parallel()
+
+	toctx, cancel := context.WithTimeout(context.Background(), time.Nanosecond)
+	srv := runTestingServer(t)
+	t.Cleanup(func() {
+		cancel()
+		srv.Close()
+	})
+
+	cases := map[string]struct {
+		endpoint     string
+		token        string
+		ctx          context.Context
+		checkAsError bool
+		wantError    error
+		wantTitle    string
+	}{
+		"Normal case":     {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), checkAsError: false, wantError: nil, wantTitle: "元日"},
+		"Unauthorized":    {endpoint: srv.URL, token: "bad_token", ctx: context.Background(), checkAsError: false, wantError: kenall.ErrUnauthorized, wantTitle: ""},
+		"Wrong endpoint":  {endpoint: "", token: "opencollector", ctx: context.Background(), checkAsError: true, wantError: &url.Error{}, wantTitle: ""},
+		"Nil context":     {endpoint: srv.URL, token: "opencollector", ctx: nil, checkAsError: true, wantError: errors.New("net/http: nil Context"), wantTitle: ""},
+		"Timeout context": {endpoint: srv.URL, token: "opencollector", ctx: toctx, checkAsError: true, wantError: kenall.ErrTimeout(context.DeadlineExceeded), wantTitle: ""},
+	}
+
+	for name, c := range cases {
+		c := c
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			cli, err := kenall.NewClient(c.token, kenall.WithEndpoint(c.endpoint))
+			if err != nil {
+				t.Error(err)
+			}
+
+			res, err := cli.GetHolidays(c.ctx)
+			if c.checkAsError && !errors.As(err, &c.wantError) {
+				t.Errorf("give: %v, want: %v", err, c.wantError)
+			} else if !errors.Is(err, c.wantError) {
+				t.Errorf("give: %v, want: %v", err, c.wantError)
+			}
+			if res != nil && res.Holidays[0].Title != c.wantTitle {
+				t.Errorf("give: %v, want: %v", res.Holidays[0].Title, c.wantTitle)
+			}
+		})
+	}
+}
+
+func TestClient_GetHolidaysByYear(t *testing.T) {
+	t.Parallel()
+
+	toctx, cancel := context.WithTimeout(context.Background(), time.Nanosecond)
+	srv := runTestingServer(t)
+	t.Cleanup(func() {
+		cancel()
+		srv.Close()
+	})
+
+	cases := map[string]struct {
+		endpoint     string
+		token        string
+		ctx          context.Context
+		giveYear     int
+		checkAsError bool
+		wantError    error
+		wantLen      int
+	}{
+		"Normal case":     {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveYear: 2022, checkAsError: false, wantError: nil, wantLen: 16},
+		"Empty case":      {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveYear: 1969, checkAsError: false, wantError: nil, wantLen: 0},
+		"Unauthorized":    {endpoint: srv.URL, token: "bad_token", ctx: context.Background(), giveYear: 2022, checkAsError: false, wantError: kenall.ErrUnauthorized, wantLen: 0},
+		"Wrong endpoint":  {endpoint: "", token: "opencollector", ctx: context.Background(), giveYear: 2022, checkAsError: true, wantError: &url.Error{}, wantLen: 0},
+		"Nil context":     {endpoint: srv.URL, token: "opencollector", ctx: nil, giveYear: 2022, checkAsError: true, wantError: errors.New("net/http: nil Context"), wantLen: 0},
+		"Timeout context": {endpoint: srv.URL, token: "opencollector", ctx: toctx, giveYear: 2022, checkAsError: true, wantError: kenall.ErrTimeout(context.DeadlineExceeded), wantLen: 0},
+	}
+
+	for name, c := range cases {
+		c := c
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			cli, err := kenall.NewClient(c.token, kenall.WithEndpoint(c.endpoint))
+			if err != nil {
+				t.Error(err)
+			}
+
+			res, err := cli.GetHolidaysByYear(c.ctx, c.giveYear)
+			if c.checkAsError && !errors.As(err, &c.wantError) {
+				t.Errorf("give: %v, want: %v", err, c.wantError)
+			} else if !errors.Is(err, c.wantError) {
+				t.Errorf("give: %v, want: %v", err, c.wantError)
+			}
+			if res != nil && len(res.Holidays) != c.wantLen {
+				t.Errorf("give: %v, want: %v", len(res.Holidays), c.wantLen)
+			}
+		})
+	}
+}
+
+func TestClient_GetHolidaysByPeriod(t *testing.T) {
+	t.Parallel()
+
+	toctx, cancel := context.WithTimeout(context.Background(), time.Nanosecond)
+	srv := runTestingServer(t)
+	t.Cleanup(func() {
+		cancel()
+		srv.Close()
+	})
+
+	from, err := time.Parse(kenall.RFC3339DateFormat, "2022-01-01")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	to, err := time.Parse(kenall.RFC3339DateFormat, "2022-12-31")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cases := map[string]struct {
+		endpoint     string
+		token        string
+		ctx          context.Context
+		giveFrom     time.Time
+		giveTo       time.Time
+		checkAsError bool
+		wantError    error
+		wantLen      int
+	}{
+		"Normal case":     {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveFrom: from, giveTo: to, checkAsError: false, wantError: nil, wantLen: 16},
+		"Empty case":      {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveFrom: from.Add(24 * time.Hour), giveTo: to, checkAsError: false, wantError: nil, wantLen: 0},
+		"Unauthorized":    {endpoint: srv.URL, token: "bad_token", ctx: context.Background(), giveFrom: from, giveTo: to, checkAsError: false, wantError: kenall.ErrUnauthorized, wantLen: 0},
+		"Wrong endpoint":  {endpoint: "", token: "opencollector", ctx: context.Background(), giveFrom: from, giveTo: to, checkAsError: true, wantError: &url.Error{}, wantLen: 0},
+		"Nil context":     {endpoint: srv.URL, token: "opencollector", ctx: nil, giveFrom: from, giveTo: to, checkAsError: true, wantError: errors.New("net/http: nil Context"), wantLen: 0},
+		"Timeout context": {endpoint: srv.URL, token: "opencollector", ctx: toctx, giveFrom: from, giveTo: to, checkAsError: true, wantError: kenall.ErrTimeout(context.DeadlineExceeded), wantLen: 0},
+	}
+
+	for name, c := range cases {
+		c := c
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			cli, err := kenall.NewClient(c.token, kenall.WithEndpoint(c.endpoint))
+			if err != nil {
+				t.Error(err)
+			}
+
+			res, err := cli.GetHolidaysByPeriod(c.ctx, c.giveFrom, c.giveTo)
+			if c.checkAsError && !errors.As(err, &c.wantError) {
+				t.Errorf("give: %v, want: %v", err, c.wantError)
+			} else if !errors.Is(err, c.wantError) {
+				t.Errorf("give: %v, want: %v", err, c.wantError)
+			}
+			if res != nil && len(res.Holidays) != c.wantLen {
+				t.Errorf("give: %v, want: %v", len(res.Holidays), c.wantLen)
+			}
+		})
+	}
+}
+
 func ExampleClient_GetAddress() {
 	if testing.Short() {
 		// stab
@@ -401,6 +565,31 @@ func ExampleClient_GetWhoami() {
 	// ip
 }
 
+func ExampleClient_GetHolidays() {
+	if testing.Short() {
+		// stab
+		fmt.Println("2022-01-01 元日")
+
+		return
+	}
+
+	// NOTE: Please set a valid token in the environment variable and run it.
+	cli, err := kenall.NewClient(os.Getenv("KENALL_AUTHORIZATION_TOKEN"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := cli.GetHolidaysByYear(context.Background(), 2022)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	day := res.Holidays[0]
+	fmt.Println(day.Format(kenall.RFC3339DateFormat), day.Title)
+	// Output:
+	// 2022-01-01 元日
+}
+
 func runTestingServer(t *testing.T) *httptest.Server {
 	t.Helper()
 
@@ -413,25 +602,27 @@ func runTestingServer(t *testing.T) *httptest.Server {
 			return
 		}
 
-		switch path := r.URL.Path; {
-		case strings.HasPrefix(path, "/postalcode/"):
-			handlePostalAPI(t, w, path)
-		case strings.HasPrefix(path, "/cities/"):
-			handleCityAPI(t, w, path)
-		case strings.HasPrefix(path, "/houjinbangou/"):
-			handleCorporationAPI(t, w, path)
-		case strings.HasPrefix(path, "/whoami"):
-			handleWhoamiAPI(t, w, path)
+		switch uri := r.URL.RequestURI(); {
+		case strings.HasPrefix(uri, "/postalcode/"):
+			handlePostalAPI(t, w, uri)
+		case strings.HasPrefix(uri, "/cities/"):
+			handleCityAPI(t, w, uri)
+		case strings.HasPrefix(uri, "/houjinbangou/"):
+			handleCorporationAPI(t, w, uri)
+		case strings.HasPrefix(uri, "/whoami"):
+			handleWhoamiAPI(t, w, uri)
+		case strings.HasPrefix(uri, "/holidays"):
+			handleHolidaysAPI(t, w, uri)
 		default:
 			w.WriteHeader(http.StatusNotFound)
 		}
 	}))
 }
 
-func handlePostalAPI(t *testing.T, w http.ResponseWriter, path string) {
+func handlePostalAPI(t *testing.T, w http.ResponseWriter, uri string) {
 	t.Helper()
 
-	switch path {
+	switch uri {
 	case "/postalcode/1008105":
 		if _, err := w.Write(addressResponse); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -455,10 +646,10 @@ func handlePostalAPI(t *testing.T, w http.ResponseWriter, path string) {
 	}
 }
 
-func handleCityAPI(t *testing.T, w http.ResponseWriter, path string) {
+func handleCityAPI(t *testing.T, w http.ResponseWriter, uri string) {
 	t.Helper()
 
-	switch path {
+	switch uri {
 	case "/cities/13":
 		if _, err := w.Write(cityResponse); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -482,10 +673,10 @@ func handleCityAPI(t *testing.T, w http.ResponseWriter, path string) {
 	}
 }
 
-func handleCorporationAPI(t *testing.T, w http.ResponseWriter, path string) {
+func handleCorporationAPI(t *testing.T, w http.ResponseWriter, uri string) {
 	t.Helper()
 
-	switch path {
+	switch uri {
 	case "/houjinbangou/2021001052596":
 		if _, err := w.Write(corporationResponse); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -509,10 +700,10 @@ func handleCorporationAPI(t *testing.T, w http.ResponseWriter, path string) {
 	}
 }
 
-func handleWhoamiAPI(t *testing.T, w http.ResponseWriter, path string) {
+func handleWhoamiAPI(t *testing.T, w http.ResponseWriter, uri string) {
 	t.Helper()
 
-	switch path {
+	switch uri {
 	case "/whoami":
 		if _, err := w.Write(whoamiResponse); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -520,4 +711,39 @@ func handleWhoamiAPI(t *testing.T, w http.ResponseWriter, path string) {
 	default:
 		w.WriteHeader(http.StatusNotFound)
 	}
+}
+
+func handleHolidaysAPI(t *testing.T, w http.ResponseWriter, uri string) {
+	t.Helper()
+
+	switch uri {
+	case "/holidays?":
+		if _, err := w.Write(holidaysResponse); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+
+		return
+	case "/holidays?year=2022":
+		if _, err := w.Write(holidaysResponse); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+
+		return
+	case "/holidays?from=2022-01-01&to=2022-12-31":
+		if _, err := w.Write(holidaysResponse); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+
+		return
+	}
+
+	if strings.HasPrefix(uri, "/holidays") {
+		if _, err := w.Write([]byte(`{"data":[]}`)); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+
+		return
+	}
+
+	w.WriteHeader(http.StatusNotFound)
 }
