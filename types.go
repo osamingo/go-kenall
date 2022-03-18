@@ -113,6 +113,8 @@ type (
 var (
 	// nolint: gochecknoglobals
 	nullLiteral = []byte("null")
+	// nolint: gochecknoglobals, gomnd
+	jst = time.FixedZone("Asia/Tokyo", int(9*time.Hour))
 
 	_ json.Unmarshaler = (*Version)(nil)
 	_ json.Unmarshaler = (*NullString)(nil)
@@ -204,7 +206,7 @@ func (h *Holiday) UnmarshalJSON(data []byte) error {
 	}
 
 	var err error
-	if h.Time, err = time.Parse(RFC3339DateFormat, tmp.Date); err != nil {
+	if h.Time, err = time.ParseInLocation(RFC3339DateFormat, tmp.Date, jst); err != nil {
 		return fmt.Errorf("kenall: failed to parse Holiday: %w", err)
 	}
 
