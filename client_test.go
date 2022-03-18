@@ -565,7 +565,7 @@ func ExampleClient_GetWhoami() {
 	// ip
 }
 
-func ExampleClient_GetHolidays() {
+func ExampleClient_GetHolidaysByYear() {
 	if testing.Short() {
 		// stab
 		fmt.Println("2022-01-01 元日")
