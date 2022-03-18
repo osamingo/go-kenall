@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"strings"
 	"time"
 )
 
@@ -16,6 +17,13 @@ type (
 	NullString struct {
 		String string
 		Valid  bool // Valid is true if String is not NULL
+	}
+
+	holiday struct {
+		Title         string `json:"title"`
+		Date          string `json:"date"`
+		DayOfWeek     int    `json:"day_of_week"`
+		DayOfWeekText string `json:"day_of_week_text"`
 	}
 )
 
@@ -121,6 +129,8 @@ var (
 	_ json.Unmarshaler = (*RemoteAddress)(nil)
 	_ json.Unmarshaler = (*Holiday)(nil)
 
+	_ json.Marshaler = (*Holiday)(nil)
+
 	_ net.Addr = (*RemoteAddress)(nil)
 )
 
@@ -195,12 +205,7 @@ func (ra *RemoteAddress) String() string {
 
 // UnmarshalJSON implements json.Unmarshaler interface.
 func (h *Holiday) UnmarshalJSON(data []byte) error {
-	type v struct {
-		Title string `json:"title"`
-		Date  string `json:"date"`
-	}
-
-	var tmp v
+	var tmp holiday
 	if err := json.Unmarshal(data, &tmp); err != nil {
 		return fmt.Errorf("kenall: failed to parse Holiday: %w", err)
 	}
@@ -213,4 +218,15 @@ func (h *Holiday) UnmarshalJSON(data []byte) error {
 	h.Title = tmp.Title
 
 	return nil
+}
+
+// MarshalJSON implements json.Marshaler interface.
+func (h Holiday) MarshalJSON() ([]byte, error) {
+	// nolint: wrapcheck
+	return json.Marshal(&holiday{
+		Title:         h.Title,
+		Date:          h.Format(RFC3339DateFormat),
+		DayOfWeek:     int(h.Weekday()),
+		DayOfWeekText: strings.ToLower(h.Weekday().String()),
+	})
 }

@@ -1,6 +1,7 @@
 package kenall_test
 
 import (
+	"bytes"
 	"testing"
 	"time"
 
@@ -156,6 +157,42 @@ func TestHoliday_UnmarshalJSON(t *testing.T) {
 			}
 			if !h.Time.Equal(c.wantTime) {
 				t.Errorf("give: %s, want: %s", h.Time, c.wantTime)
+			}
+		})
+	}
+}
+
+func TestHoliday_MarshalJSON(t *testing.T) {
+	t.Parallel()
+
+	cases := map[string]struct {
+		give      *kenall.Holiday
+		want      []byte
+		wantError bool
+	}{
+		"Normal case": {give: &kenall.Holiday{Title: "元日", Time: time.Date(2022, 1, 1, 0, 0, 0, 0, time.FixedZone("Asia/Tokyo", int(9*time.Hour)))}, want: []byte(`{"title":"元日","date":"2022-01-01","day_of_week":6,"day_of_week_text":"saturday"}`), wantError: false},
+		"Empty case":  {give: &kenall.Holiday{}, want: []byte(`{"title":"","date":"0001-01-01","day_of_week":1,"day_of_week_text":"monday"}`), wantError: false},
+	}
+
+	for name, c := range cases {
+		c := c
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			b, err := c.give.MarshalJSON()
+			if c.wantError {
+				if err == nil {
+					t.Errorf("an error should not be nil")
+				}
+
+				return
+			}
+			if err != nil {
+				t.Fatalf("an error should be nil, err = %s", err)
+			}
+			if !bytes.Equal(b, c.want) {
+				t.Errorf("give: %s, want: %s", b, c.want)
 			}
 		})
 	}
