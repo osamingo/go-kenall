@@ -122,7 +122,7 @@ var (
 	// nolint: gochecknoglobals
 	nullLiteral = []byte("null")
 	// nolint: gochecknoglobals, gomnd
-	jst = time.FixedZone("Asia/Tokyo", int(9*time.Hour))
+	jst = time.FixedZone("Asia/Tokyo", 9*60*60)
 
 	_ json.Unmarshaler = (*Version)(nil)
 	_ json.Unmarshaler = (*NullString)(nil)
