@@ -129,7 +129,7 @@ func TestHoliday_UnmarshalJSON(t *testing.T) {
 		wantTime  time.Time
 		wantError bool
 	}{
-		"Normal case":            {give: `{"title":"元日","date":"2022-01-01","day_of_week":6,"day_of_week_text":"saturday"}`, wantTitle: "元日", wantTime: time.Date(2022, 1, 1, 0, 0, 0, 0, time.FixedZone("Asia/Tokyo", int(9*time.Hour))), wantError: false},
+		"Normal case":            {give: `{"title":"元日","date":"2022-01-01","day_of_week":6,"day_of_week_text":"saturday"}`, wantTitle: "元日", wantTime: time.Date(2022, 1, 1, 0, 0, 0, 0, time.FixedZone("Asia/Tokyo", 9*60*60)), wantError: false},
 		"Unexpected JSON value":  {give: `{"title":2,"date":"2022-01-01","day_of_week":6,"day_of_week_text":"saturday"}`, wantTitle: "", wantTime: time.Time{}, wantError: true},
 		"Unexpected date format": {give: `{"title":"元日","date":"2022/01/01","day_of_week":6,"day_of_week_text":"saturday"}`, wantTitle: "", wantTime: time.Time{}, wantError: true},
 	}
@@ -170,7 +170,7 @@ func TestHoliday_MarshalJSON(t *testing.T) {
 		want      []byte
 		wantError bool
 	}{
-		"Normal case": {give: &kenall.Holiday{Title: "元日", Time: time.Date(2022, 1, 1, 0, 0, 0, 0, time.FixedZone("Asia/Tokyo", int(9*time.Hour)))}, want: []byte(`{"title":"元日","date":"2022-01-01","day_of_week":6,"day_of_week_text":"saturday"}`), wantError: false},
+		"Normal case": {give: &kenall.Holiday{Title: "元日", Time: time.Date(2022, 1, 1, 0, 0, 0, 0, time.FixedZone("Asia/Tokyo", 9*60*60))}, want: []byte(`{"title":"元日","date":"2022-01-01","day_of_week":6,"day_of_week_text":"saturday"}`), wantError: false},
 		"Empty case":  {give: &kenall.Holiday{}, want: []byte(`{"title":"","date":"0001-01-01","day_of_week":1,"day_of_week_text":"monday"}`), wantError: false},
 	}
 
