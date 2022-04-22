@@ -137,8 +137,10 @@ func TestClient_GetAddress(t *testing.T) {
 func TestClient_GetCity(t *testing.T) {
 	t.Parallel()
 
+	toctx, cancel := context.WithTimeout(context.Background(), time.Nanosecond)
 	srv := runTestingServer(t)
 	t.Cleanup(func() {
+		cancel()
 		srv.Close()
 	})
 
@@ -153,7 +155,17 @@ func TestClient_GetCity(t *testing.T) {
 	}{
 		"Normal case":             {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), prefectureCode: "13", checkAsError: false, wantError: nil, wantJISX0402: "13101"},
 		"Invalid prefecture code": {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), prefectureCode: "alphabet", checkAsError: false, wantError: kenall.ErrInvalidArgument, wantJISX0402: ""},
+		"Not found":               {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), prefectureCode: "48", checkAsError: false, wantError: kenall.ErrNotFound, wantJISX0402: ""},
+		"Unauthorized":            {endpoint: srv.URL, token: "bad_token", ctx: context.Background(), prefectureCode: "00", checkAsError: false, wantError: kenall.ErrUnauthorized, wantJISX0402: ""},
+		"Payment Required":        {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), prefectureCode: "90", checkAsError: false, wantError: kenall.ErrPaymentRequired, wantJISX0402: ""},
+		"Forbidden":               {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), prefectureCode: "91", checkAsError: false, wantError: kenall.ErrForbidden, wantJISX0402: ""},
+		"Method Not Allowed":      {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), prefectureCode: "96", checkAsError: false, wantError: kenall.ErrMethodNotAllowed, wantJISX0402: ""},
+		"Internal server error":   {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), prefectureCode: "92", checkAsError: false, wantError: kenall.ErrInternalServerError, wantJISX0402: ""},
+		"Unknown status code":     {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), prefectureCode: "94", checkAsError: true, wantError: fmt.Errorf(""), wantJISX0402: ""},
+		"Wrong endpoint":          {endpoint: "", token: "opencollector", ctx: context.Background(), prefectureCode: "00", checkAsError: true, wantError: &url.Error{}, wantJISX0402: ""},
 		"Wrong response":          {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), prefectureCode: "95", checkAsError: true, wantError: &json.MarshalerError{}, wantJISX0402: ""},
+		"Nil context":             {endpoint: srv.URL, token: "opencollector", ctx: nil, prefectureCode: "00", checkAsError: true, wantError: errors.New("net/http: nil Context"), wantJISX0402: ""},
+		"Timeout context":         {endpoint: srv.URL, token: "opencollector", ctx: toctx, prefectureCode: "13", checkAsError: true, wantError: kenall.ErrTimeout(context.DeadlineExceeded), wantJISX0402: ""},
 	}
 
 	for name, c := range cases {
@@ -183,8 +195,10 @@ func TestClient_GetCity(t *testing.T) {
 func TestClient_GetCorporation(t *testing.T) {
 	t.Parallel()
 
+	toctx, cancel := context.WithTimeout(context.Background(), time.Nanosecond)
 	srv := runTestingServer(t)
 	t.Cleanup(func() {
+		cancel()
 		srv.Close()
 	})
 
@@ -199,7 +213,17 @@ func TestClient_GetCorporation(t *testing.T) {
 	}{
 		"Normal case":              {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "2021001052596", checkAsError: false, wantError: nil, wantJISX0402: "13101"},
 		"Invalid corporate number": {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "alphabet", checkAsError: false, wantError: kenall.ErrInvalidArgument, wantJISX0402: ""},
+		"Not found":                {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "0000000000001", checkAsError: false, wantError: kenall.ErrNotFound, wantJISX0402: ""},
+		"Unauthorized":             {endpoint: srv.URL, token: "bad_token", ctx: context.Background(), corporateNumber: "2021001052596", checkAsError: false, wantError: kenall.ErrUnauthorized, wantJISX0402: ""},
+		"Payment Required":         {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "0000000000402", checkAsError: false, wantError: kenall.ErrPaymentRequired, wantJISX0402: ""},
+		"Forbidden":                {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "0000000000403", checkAsError: false, wantError: kenall.ErrForbidden, wantJISX0402: ""},
+		"Method Not Allowed":       {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "0000000000405", checkAsError: false, wantError: kenall.ErrMethodNotAllowed, wantJISX0402: ""},
+		"Internal server error":    {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "0000000000500", checkAsError: false, wantError: kenall.ErrInternalServerError, wantJISX0402: ""},
+		"Unknown status code":      {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "0000000000503", checkAsError: true, wantError: fmt.Errorf(""), wantJISX0402: ""},
+		"Wrong endpoint":           {endpoint: "", token: "opencollector", ctx: context.Background(), corporateNumber: "2021001052596", checkAsError: true, wantError: &url.Error{}, wantJISX0402: ""},
 		"Wrong response":           {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "0000000000000", checkAsError: true, wantError: &json.MarshalerError{}, wantJISX0402: ""},
+		"Nil context":              {endpoint: srv.URL, token: "opencollector", ctx: nil, corporateNumber: "2021001052596", checkAsError: true, wantError: errors.New("net/http: nil Context"), wantJISX0402: ""},
+		"Timeout context":          {endpoint: srv.URL, token: "opencollector", ctx: toctx, corporateNumber: "2021001052596", checkAsError: true, wantError: kenall.ErrTimeout(context.DeadlineExceeded), wantJISX0402: ""},
 	}
 
 	for name, c := range cases {
@@ -229,8 +253,10 @@ func TestClient_GetCorporation(t *testing.T) {
 func TestClient_GetWhoami(t *testing.T) {
 	t.Parallel()
 
+	toctx, cancel := context.WithTimeout(context.Background(), time.Nanosecond)
 	srv := runTestingServer(t)
 	t.Cleanup(func() {
+		cancel()
 		srv.Close()
 	})
 
@@ -242,7 +268,11 @@ func TestClient_GetWhoami(t *testing.T) {
 		wantError    error
 		wantAddr     string
 	}{
-		"Normal case": {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), checkAsError: false, wantError: nil, wantAddr: "192.168.0.1"},
+		"Normal case":     {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), checkAsError: false, wantError: nil, wantAddr: "192.168.0.1"},
+		"Unauthorized":    {endpoint: srv.URL, token: "bad_token", ctx: context.Background(), checkAsError: false, wantError: kenall.ErrUnauthorized, wantAddr: ""},
+		"Wrong endpoint":  {endpoint: "", token: "opencollector", ctx: context.Background(), checkAsError: true, wantError: &url.Error{}, wantAddr: ""},
+		"Nil context":     {endpoint: srv.URL, token: "opencollector", ctx: nil, checkAsError: true, wantError: errors.New("net/http: nil Context"), wantAddr: ""},
+		"Timeout context": {endpoint: srv.URL, token: "opencollector", ctx: toctx, checkAsError: true, wantError: kenall.ErrTimeout(context.DeadlineExceeded), wantAddr: ""},
 	}
 
 	for name, c := range cases {
@@ -272,8 +302,10 @@ func TestClient_GetWhoami(t *testing.T) {
 func TestClient_GetHolidays(t *testing.T) {
 	t.Parallel()
 
+	toctx, cancel := context.WithTimeout(context.Background(), time.Nanosecond)
 	srv := runTestingServer(t)
 	t.Cleanup(func() {
+		cancel()
 		srv.Close()
 	})
 
@@ -285,7 +317,11 @@ func TestClient_GetHolidays(t *testing.T) {
 		wantError    error
 		wantTitle    string
 	}{
-		"Normal case": {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), checkAsError: false, wantError: nil, wantTitle: "元日"},
+		"Normal case":     {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), checkAsError: false, wantError: nil, wantTitle: "元日"},
+		"Unauthorized":    {endpoint: srv.URL, token: "bad_token", ctx: context.Background(), checkAsError: false, wantError: kenall.ErrUnauthorized, wantTitle: ""},
+		"Wrong endpoint":  {endpoint: "", token: "opencollector", ctx: context.Background(), checkAsError: true, wantError: &url.Error{}, wantTitle: ""},
+		"Nil context":     {endpoint: srv.URL, token: "opencollector", ctx: nil, checkAsError: true, wantError: errors.New("net/http: nil Context"), wantTitle: ""},
+		"Timeout context": {endpoint: srv.URL, token: "opencollector", ctx: toctx, checkAsError: true, wantError: kenall.ErrTimeout(context.DeadlineExceeded), wantTitle: ""},
 	}
 
 	for name, c := range cases {
@@ -315,8 +351,10 @@ func TestClient_GetHolidays(t *testing.T) {
 func TestClient_GetHolidaysByYear(t *testing.T) {
 	t.Parallel()
 
+	toctx, cancel := context.WithTimeout(context.Background(), time.Nanosecond)
 	srv := runTestingServer(t)
 	t.Cleanup(func() {
+		cancel()
 		srv.Close()
 	})
 
@@ -329,8 +367,12 @@ func TestClient_GetHolidaysByYear(t *testing.T) {
 		wantError    error
 		wantLen      int
 	}{
-		"Normal case": {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveYear: 2022, checkAsError: false, wantError: nil, wantLen: 16},
-		"Empty case":  {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveYear: 1969, checkAsError: false, wantError: nil, wantLen: 0},
+		"Normal case":     {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveYear: 2022, checkAsError: false, wantError: nil, wantLen: 16},
+		"Empty case":      {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveYear: 1969, checkAsError: false, wantError: nil, wantLen: 0},
+		"Unauthorized":    {endpoint: srv.URL, token: "bad_token", ctx: context.Background(), giveYear: 2022, checkAsError: false, wantError: kenall.ErrUnauthorized, wantLen: 0},
+		"Wrong endpoint":  {endpoint: "", token: "opencollector", ctx: context.Background(), giveYear: 2022, checkAsError: true, wantError: &url.Error{}, wantLen: 0},
+		"Nil context":     {endpoint: srv.URL, token: "opencollector", ctx: nil, giveYear: 2022, checkAsError: true, wantError: errors.New("net/http: nil Context"), wantLen: 0},
+		"Timeout context": {endpoint: srv.URL, token: "opencollector", ctx: toctx, giveYear: 2022, checkAsError: true, wantError: kenall.ErrTimeout(context.DeadlineExceeded), wantLen: 0},
 	}
 
 	for name, c := range cases {
@@ -360,8 +402,10 @@ func TestClient_GetHolidaysByYear(t *testing.T) {
 func TestClient_GetHolidaysByPeriod(t *testing.T) {
 	t.Parallel()
 
+	toctx, cancel := context.WithTimeout(context.Background(), time.Nanosecond)
 	srv := runTestingServer(t)
 	t.Cleanup(func() {
+		cancel()
 		srv.Close()
 	})
 
@@ -385,8 +429,12 @@ func TestClient_GetHolidaysByPeriod(t *testing.T) {
 		wantError    error
 		wantLen      int
 	}{
-		"Normal case": {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveFrom: from, giveTo: to, checkAsError: false, wantError: nil, wantLen: 16},
-		"Empty case":  {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveFrom: from.Add(24 * time.Hour), giveTo: to, checkAsError: false, wantError: nil, wantLen: 0},
+		"Normal case":     {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveFrom: from, giveTo: to, checkAsError: false, wantError: nil, wantLen: 16},
+		"Empty case":      {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveFrom: from.Add(24 * time.Hour), giveTo: to, checkAsError: false, wantError: nil, wantLen: 0},
+		"Unauthorized":    {endpoint: srv.URL, token: "bad_token", ctx: context.Background(), giveFrom: from, giveTo: to, checkAsError: false, wantError: kenall.ErrUnauthorized, wantLen: 0},
+		"Wrong endpoint":  {endpoint: "", token: "opencollector", ctx: context.Background(), giveFrom: from, giveTo: to, checkAsError: true, wantError: &url.Error{}, wantLen: 0},
+		"Nil context":     {endpoint: srv.URL, token: "opencollector", ctx: nil, giveFrom: from, giveTo: to, checkAsError: true, wantError: errors.New("net/http: nil Context"), wantLen: 0},
+		"Timeout context": {endpoint: srv.URL, token: "opencollector", ctx: toctx, giveFrom: from, giveTo: to, checkAsError: true, wantError: kenall.ErrTimeout(context.DeadlineExceeded), wantLen: 0},
 	}
 
 	for name, c := range cases {
@@ -430,8 +478,10 @@ func TestClient_GetNormalizeAddress(t *testing.T) {
 		wantError       error
 		wantBlockLotNum string
 	}{
-		"Normal case": {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveAddress: "東京都港区六本木六丁目10番1号六本木ヒルズ森タワー18F", checkAsError: false, wantError: nil, wantBlockLotNum: "6-10-1"},
-		"Empty case":  {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveAddress: "", checkAsError: true, wantError: kenall.ErrInvalidArgument, wantBlockLotNum: ""},
+		"Normal case":    {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveAddress: "東京都港区六本木六丁目10番1号六本木ヒルズ森タワー18F", checkAsError: false, wantError: nil, wantBlockLotNum: "6-10-1"},
+		"Empty case":     {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveAddress: "", checkAsError: true, wantError: kenall.ErrInvalidArgument, wantBlockLotNum: ""},
+		"Wrong response": {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveAddress: "wrong", checkAsError: true, wantError: &json.MarshalerError{}, wantBlockLotNum: ""},
+		"nil context":    {endpoint: srv.URL, token: "opencollector", ctx: nil, giveAddress: "東京都港区六本木六丁目10番1号六本木ヒルズ森タワー18F", checkAsError: true, wantError: &url.Error{}, wantBlockLotNum: ""},
 	}
 
 	for name, c := range cases {
@@ -592,7 +642,7 @@ func ExampleClient_GetHolidaysByYear() {
 func ExampleClient_GetNormalizeAddress() {
 	if testing.Short() {
 		// stab
-		fmt.Print("false\n東京都 千代田区\n")
+		fmt.Print("false\n3-12-14 8F\n")
 
 		return
 	}
@@ -648,9 +698,19 @@ func runTestingServer(t *testing.T) *httptest.Server {
 func handlePostalAPI(t *testing.T, w http.ResponseWriter, uri string) {
 	t.Helper()
 
-	if strings.HasPrefix(uri, "/postalcode/?t=") {
-		if _, err := w.Write(searchAddressResponse); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+	if strings.HasPrefix(uri, "/postalcode/?") {
+		// nolint: errcheck
+		u, _ := url.Parse(uri)
+
+		switch u.Query().Get("t") {
+		case "東京都港区六本木六丁目10番1号六本木ヒルズ森タワー18F":
+			if _, err := w.Write(searchAddressResponse); err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+		case "wrong":
+			if _, err := w.Write([]byte("wrong")); err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+			}
 		}
 	}
 
