@@ -116,6 +116,20 @@ type (
 		Title string
 		time.Time
 	}
+	// A Query is data normalized to an address.
+	Query struct {
+		Q           NullString `json:"q"`
+		T           NullString `json:"t"`
+		Prefecture  NullString `json:"prefecture"`
+		County      NullString `json:"county"`
+		City        NullString `json:"city"`
+		CityWard    NullString `json:"city_ward"`
+		Town        NullString `json:"town"`
+		KyotoStreet NullString `json:"kyoto_street"`
+		BlockLotNum NullString `json:"block_lot_num"`
+		Building    NullString `json:"building"`
+		FloorRoom   NullString `json:"floor_room"`
+	}
 )
 
 var (

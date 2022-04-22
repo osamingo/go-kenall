@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -228,4 +229,30 @@ func (cli *Client) GetHolidaysByPeriod(ctx context.Context, from, to time.Time) 
 		"from": []string{from.Format(RFC3339DateFormat)},
 		"to":   []string{to.Format(RFC3339DateFormat)},
 	})
+}
+
+// A GetNormalizeAddressResponse is a result from the kenall service of the API to normalize address.
+type GetNormalizeAddressResponse struct {
+	Version Version `json:"version"`
+	Query   Query   `json:"query"`
+}
+
+// GetNormalizeAddress requests to the kenall service to normalize address.
+func (cli *Client) GetNormalizeAddress(ctx context.Context, address string) (*GetNormalizeAddressResponse, error) {
+	address = strings.TrimSpace(address)
+	if address == "" {
+		return nil, ErrInvalidArgument
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+"/postalcode/?t="+address, nil)
+	if err != nil {
+		return nil, fmt.Errorf("kenall: failed to generate http request: %w", err)
+	}
+
+	var res GetNormalizeAddressResponse
+	if err := cli.sendRequest(req, &res); err != nil {
+		return nil, fmt.Errorf("kenall: failed to send request for kenall service: %w", err)
+	}
+
+	return &res, nil
 }
