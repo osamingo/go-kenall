@@ -13,12 +13,13 @@ Unofficially [kenall](https://kenall.jp/) (ケンオール) client written by Go
 ## Install
 
 ```shell
-$ go get github.com/osamingo/go-kenall/v2@v2.2.2
+$ go get github.com/osamingo/go-kenall/v2@v2.3.0
 ```
 
 ## APIs supported by this library
 
 - [郵便番号検索API](https://kenall.jp/docs/api-introduction/#%E9%83%B5%E4%BE%BF%E7%95%AA%E5%8F%B7%E6%A4%9C%E7%B4%A2api)
+- [住所正規化API](https://kenall.jp/docs/API/postalcode/#%E4%BD%8F%E6%89%80%E6%AD%A3%E8%A6%8F%E5%8C%96%E6%A9%9F%E8%83%BD)
 - [市区町村API](https://kenall.jp/docs/api-introduction/#%E5%B8%82%E5%8C%BA%E7%94%BA%E6%9D%91api)
 - [日本の祝日API](https://kenall.jp/docs/API/holidays/)
 - [自己IPアドレス確認API](https://kenall.jp/docs/API/whoami/#get-whoami)
