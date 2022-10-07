@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -55,8 +54,7 @@ func NewClient(token string, opts ...ClientOption) (*Client, error) {
 	return cli, nil
 }
 
-// nolint: cyclop
-func (cli *Client) sendRequest(req *http.Request, res interface{}) error {
+func (cli *Client) sendRequest(req *http.Request, res interface{}) error { //nolint: cyclop
 	req.Header.Add("Authorization", "token "+cli.token)
 
 	resp, err := cli.HTTPClient.Do(req)
@@ -69,7 +67,7 @@ func (cli *Client) sendRequest(req *http.Request, res interface{}) error {
 	}
 
 	defer func() {
-		_, _ = io.Copy(ioutil.Discard, resp.Body)
+		_, _ = io.Copy(io.Discard, resp.Body)
 		_ = resp.Body.Close()
 	}()
 
@@ -91,7 +89,7 @@ func (cli *Client) sendRequest(req *http.Request, res interface{}) error {
 	case http.StatusInternalServerError:
 		return ErrInternalServerError
 	default:
-		// nolint: goerr113
+		//nolint: goerr113
 		return fmt.Errorf("kenall: not registered in the error handling, http status code = %d", resp.StatusCode)
 	}
 

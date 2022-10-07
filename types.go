@@ -133,9 +133,9 @@ type (
 )
 
 var (
-	// nolint: gochecknoglobals
+	//nolint: gochecknoglobals
 	nullLiteral = []byte("null")
-	// nolint: gochecknoglobals, gomnd
+	//nolint: gochecknoglobals, gomnd
 	jst = time.FixedZone("Asia/Tokyo", 9*60*60)
 
 	_ json.Unmarshaler = (*Version)(nil)
@@ -200,7 +200,7 @@ func (ra *RemoteAddress) UnmarshalJSON(data []byte) error {
 			return fmt.Errorf("kenall: failed to resolve IP address: %w", err)
 		}
 	default:
-		// nolint: goerr113
+		//nolint: goerr113
 		return errors.New("kenall: undefined type of RemoteAddress, type = " + tmp.Type)
 	}
 
@@ -236,7 +236,7 @@ func (h *Holiday) UnmarshalJSON(data []byte) error {
 
 // MarshalJSON implements json.Marshaler interface.
 func (h Holiday) MarshalJSON() ([]byte, error) {
-	// nolint: wrapcheck
+	//nolint: wrapcheck
 	return json.Marshal(&holiday{
 		Title:         h.Title,
 		Date:          h.Format(RFC3339DateFormat),
