@@ -92,7 +92,7 @@ func TestClient_GetAddress(t *testing.T) {
 		ctx          context.Context
 		postalCode   string
 		checkAsError bool
-		wantError    error
+		wantError    any
 		wantJISX0402 string
 	}{
 		"Normal case":           {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), postalCode: "1008105", checkAsError: false, wantError: nil, wantJISX0402: "13104"},
@@ -124,7 +124,7 @@ func TestClient_GetAddress(t *testing.T) {
 			res, err := cli.GetAddress(c.ctx, c.postalCode)
 			if c.checkAsError && !errors.As(err, &c.wantError) {
 				t.Errorf("give: %v, want: %v", err, c.wantError)
-			} else if !errors.Is(err, c.wantError) {
+			} else if want, _ := c.wantError.(error); !errors.Is(err, want) {
 				t.Errorf("give: %v, want: %v", err, c.wantError)
 			}
 			if res != nil && res.Addresses[0].JISX0402 != c.wantJISX0402 {
@@ -150,7 +150,7 @@ func TestClient_GetCity(t *testing.T) {
 		ctx            context.Context
 		prefectureCode string
 		checkAsError   bool
-		wantError      error
+		wantError      any
 		wantJISX0402   string
 	}{
 		"Normal case":             {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), prefectureCode: "13", checkAsError: false, wantError: nil, wantJISX0402: "13101"},
@@ -182,7 +182,7 @@ func TestClient_GetCity(t *testing.T) {
 			res, err := cli.GetCity(c.ctx, c.prefectureCode)
 			if c.checkAsError && !errors.As(err, &c.wantError) {
 				t.Errorf("give: %v, want: %v", err, c.wantError)
-			} else if !errors.Is(err, c.wantError) {
+			} else if want, _ := c.wantError.(error); !errors.Is(err, want) {
 				t.Errorf("give: %v, want: %v", err, c.wantError)
 			}
 			if res != nil && res.Cities[0].JISX0402 != c.wantJISX0402 {
@@ -208,7 +208,7 @@ func TestClient_GetCorporation(t *testing.T) {
 		ctx             context.Context
 		corporateNumber string
 		checkAsError    bool
-		wantError       error
+		wantError       any
 		wantJISX0402    string
 	}{
 		"Normal case":              {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), corporateNumber: "2021001052596", checkAsError: false, wantError: nil, wantJISX0402: "13101"},
@@ -240,7 +240,7 @@ func TestClient_GetCorporation(t *testing.T) {
 			res, err := cli.GetCorporation(c.ctx, c.corporateNumber)
 			if c.checkAsError && !errors.As(err, &c.wantError) {
 				t.Errorf("give: %v, want: %v", err, c.wantError)
-			} else if !errors.Is(err, c.wantError) {
+			} else if want, _ := c.wantError.(error); !errors.Is(err, want) {
 				t.Errorf("give: %v, want: %v", err, c.wantError)
 			}
 			if res != nil && res.Corporation.JISX0402 != c.wantJISX0402 {
@@ -265,7 +265,7 @@ func TestClient_GetWhoami(t *testing.T) {
 		token        string
 		ctx          context.Context
 		checkAsError bool
-		wantError    error
+		wantError    any
 		wantAddr     string
 	}{
 		"Normal case":     {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), checkAsError: false, wantError: nil, wantAddr: "192.168.0.1"},
@@ -289,7 +289,7 @@ func TestClient_GetWhoami(t *testing.T) {
 			res, err := cli.GetWhoami(c.ctx)
 			if c.checkAsError && !errors.As(err, &c.wantError) {
 				t.Errorf("give: %v, want: %v", err, c.wantError)
-			} else if !errors.Is(err, c.wantError) {
+			} else if want, _ := c.wantError.(error); !errors.Is(err, want) {
 				t.Errorf("give: %v, want: %v", err, c.wantError)
 			}
 			if res != nil && res.RemoteAddress.String() != c.wantAddr {
@@ -314,7 +314,7 @@ func TestClient_GetHolidays(t *testing.T) {
 		token        string
 		ctx          context.Context
 		checkAsError bool
-		wantError    error
+		wantError    any
 		wantTitle    string
 	}{
 		"Normal case":     {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), checkAsError: false, wantError: nil, wantTitle: "元日"},
@@ -338,7 +338,7 @@ func TestClient_GetHolidays(t *testing.T) {
 			res, err := cli.GetHolidays(c.ctx)
 			if c.checkAsError && !errors.As(err, &c.wantError) {
 				t.Errorf("give: %v, want: %v", err, c.wantError)
-			} else if !errors.Is(err, c.wantError) {
+			} else if want, _ := c.wantError.(error); !errors.Is(err, want) {
 				t.Errorf("give: %v, want: %v", err, c.wantError)
 			}
 			if res != nil && res.Holidays[0].Title != c.wantTitle {
@@ -364,7 +364,7 @@ func TestClient_GetHolidaysByYear(t *testing.T) {
 		ctx          context.Context
 		giveYear     int
 		checkAsError bool
-		wantError    error
+		wantError    any
 		wantLen      int
 	}{
 		"Normal case":     {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveYear: 2022, checkAsError: false, wantError: nil, wantLen: 16},
@@ -389,7 +389,7 @@ func TestClient_GetHolidaysByYear(t *testing.T) {
 			res, err := cli.GetHolidaysByYear(c.ctx, c.giveYear)
 			if c.checkAsError && !errors.As(err, &c.wantError) {
 				t.Errorf("give: %v, want: %v", err, c.wantError)
-			} else if !errors.Is(err, c.wantError) {
+			} else if want, _ := c.wantError.(error); !errors.Is(err, want) {
 				t.Errorf("give: %v, want: %v", err, c.wantError)
 			}
 			if res != nil && len(res.Holidays) != c.wantLen {
@@ -426,7 +426,7 @@ func TestClient_GetHolidaysByPeriod(t *testing.T) {
 		giveFrom     time.Time
 		giveTo       time.Time
 		checkAsError bool
-		wantError    error
+		wantError    any
 		wantLen      int
 	}{
 		"Normal case":     {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveFrom: from, giveTo: to, checkAsError: false, wantError: nil, wantLen: 16},
@@ -451,7 +451,7 @@ func TestClient_GetHolidaysByPeriod(t *testing.T) {
 			res, err := cli.GetHolidaysByPeriod(c.ctx, c.giveFrom, c.giveTo)
 			if c.checkAsError && !errors.As(err, &c.wantError) {
 				t.Errorf("give: %v, want: %v", err, c.wantError)
-			} else if !errors.Is(err, c.wantError) {
+			} else if want, _ := c.wantError.(error); !errors.Is(err, want) {
 				t.Errorf("give: %v, want: %v", err, c.wantError)
 			}
 			if res != nil && len(res.Holidays) != c.wantLen {
@@ -475,7 +475,7 @@ func TestClient_GetNormalizeAddress(t *testing.T) {
 		ctx             context.Context
 		giveAddress     string
 		checkAsError    bool
-		wantError       error
+		wantError       any
 		wantBlockLotNum string
 	}{
 		"Normal case":    {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveAddress: "東京都港区六本木六丁目10番1号六本木ヒルズ森タワー18F", checkAsError: false, wantError: nil, wantBlockLotNum: "6-10-1"},
@@ -498,7 +498,7 @@ func TestClient_GetNormalizeAddress(t *testing.T) {
 			res, err := cli.GetNormalizeAddress(c.ctx, c.giveAddress)
 			if c.checkAsError && !errors.As(err, &c.wantError) {
 				t.Errorf("give: %v, want: %v", err, c.wantError)
-			} else if !errors.Is(err, c.wantError) {
+			} else if want, _ := c.wantError.(error); !errors.Is(err, want) {
 				t.Errorf("give: %v, want: %v", err, c.wantError)
 			}
 			if res != nil && res.Query.BlockLotNum.String != c.wantBlockLotNum {
@@ -699,7 +699,7 @@ func handlePostalAPI(t *testing.T, w http.ResponseWriter, uri string) {
 	t.Helper()
 
 	if strings.HasPrefix(uri, "/postalcode/?") {
-		// nolint: errcheck
+		//nolint: errcheck
 		u, _ := url.Parse(uri)
 
 		switch u.Query().Get("t") {

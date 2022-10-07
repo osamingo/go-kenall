@@ -33,3 +33,5 @@ issues:
         - ifshort
         - varnamelen
         - containedctx
+        - nosnakecase
+        - exhaustruct
