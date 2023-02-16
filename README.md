@@ -22,6 +22,7 @@ $ go get github.com/osamingo/go-kenall/v2@latest
 - [住所正規化API](https://kenall.jp/docs/API/postalcode/#%E4%BD%8F%E6%89%80%E6%AD%A3%E8%A6%8F%E5%8C%96%E6%A9%9F%E8%83%BD)
 - [市区町村API](https://kenall.jp/docs/api-introduction/#%E5%B8%82%E5%8C%BA%E7%94%BA%E6%9D%91api)
 - [日本の祝日API](https://kenall.jp/docs/API/holidays/)
+- [法定休日確認API](https://kenall.jp/docs/API/businessday/)
 - [自己IPアドレス確認API](https://kenall.jp/docs/API/whoami/#get-whoami)
 - [法人番号検索API](https://kenall.jp/docs/api-introduction/#%E6%B3%95%E4%BA%BA%E7%95%AA%E5%8F%B7%E6%A4%9C%E7%B4%A2api)
 
