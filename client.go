@@ -257,3 +257,32 @@ func (cli *Client) GetNormalizeAddress(ctx context.Context, address string) (*Ge
 
 	return &res, nil
 }
+
+type GetBusinessDaysResponse struct {
+	BusinessDay *BusinessDay
+}
+
+func (cli *Client) GetBusinessDays(ctx context.Context, date time.Time) (*GetBusinessDaysResponse, error) {
+	if date.IsZero() {
+		return nil, ErrInvalidArgument
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+"/businessdays/check?date="+date.Format(RFC3339DateFormat), nil)
+	if err != nil {
+		return nil, fmt.Errorf(errFailedGenerateRequestFormat, err)
+	}
+
+	res := struct {
+		Result bool `json:"result"`
+	}{}
+	if err := cli.sendRequest(req, &res); err != nil {
+		return nil, fmt.Errorf(errFailedRequestFormat, err)
+	}
+
+	return &GetBusinessDaysResponse{
+		BusinessDay: &BusinessDay{
+			LegalHoliday: res.Result,
+			Time:         date,
+		},
+	}, nil
+}

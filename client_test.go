@@ -31,6 +31,8 @@ var (
 	holidaysResponse []byte
 	//go:embed testdata/search_address.json
 	searchAddressResponse []byte
+	//go:embed testdata/business_day.json
+	businessDaysResponse []byte
 )
 
 func TestNewClient(t *testing.T) {
@@ -508,6 +510,53 @@ func TestClient_GetNormalizeAddress(t *testing.T) {
 	}
 }
 
+func TestClient_GetBusinessDays(t *testing.T) {
+	t.Parallel()
+
+	srv := runTestingServer(t)
+	t.Cleanup(func() {
+		srv.Close()
+	})
+
+	cases := map[string]struct {
+		endpoint     string
+		token        string
+		ctx          context.Context
+		giveTime     time.Time
+		checkAsError bool
+		wantError    any
+		wantResult   bool
+	}{
+		"Normal case":    {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveTime: time.UnixMilli(1672498800000), checkAsError: false, wantError: nil, wantResult: true},
+		"Empty case":     {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveTime: time.Time{}, checkAsError: true, wantError: kenall.ErrInvalidArgument, wantResult: false},
+		"Wrong response": {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveTime: time.Time{}.Add(time.Hour), checkAsError: true, wantError: &json.MarshalerError{}, wantResult: false},
+		"nil context":    {endpoint: srv.URL, token: "opencollector", ctx: nil, giveTime: time.Now(), checkAsError: true, wantError: &url.Error{}, wantResult: false},
+	}
+
+	for name, c := range cases {
+		c := c
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			cli, err := kenall.NewClient(c.token, kenall.WithEndpoint(c.endpoint))
+			if err != nil {
+				t.Error(err)
+			}
+
+			res, err := cli.GetBusinessDays(c.ctx, c.giveTime)
+			if c.checkAsError && !errors.As(err, &c.wantError) {
+				t.Errorf("give: %v, want: %v", err, c.wantError)
+			} else if want, _ := c.wantError.(error); !errors.Is(err, want) {
+				t.Errorf("give: %v, want: %v", err, c.wantError)
+			}
+			if res != nil && res.BusinessDay.LegalHoliday != c.wantResult {
+				t.Errorf("give: %v, want: %v", res.BusinessDay.LegalHoliday, c.wantResult)
+			}
+		})
+	}
+}
+
 func ExampleClient_GetAddress() {
 	if testing.Short() {
 		// stab
@@ -666,6 +715,32 @@ func ExampleClient_GetNormalizeAddress() {
 	// 3-12-14 8F
 }
 
+func ExampleClient_GetBusinessDays() {
+	if testing.Short() {
+		// stab
+		fmt.Print("false\n2000-01-01\n")
+
+		return
+	}
+
+	// NOTE: Please set a valid token in the environment variable and run it.
+	cli, err := kenall.NewClient(os.Getenv("KENALL_AUTHORIZATION_TOKEN"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := cli.GetBusinessDays(context.Background(), time.UnixMilli(946652400000)) // 2000-01-01
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(res.BusinessDay.LegalHoliday)
+	fmt.Println(res.BusinessDay.Format(kenall.RFC3339DateFormat))
+	// Output:
+	// false
+	// 2000-01-01
+}
+
 func runTestingServer(t *testing.T) *httptest.Server {
 	t.Helper()
 
@@ -689,6 +764,8 @@ func runTestingServer(t *testing.T) *httptest.Server {
 			handleWhoamiAPI(t, w, uri)
 		case strings.HasPrefix(uri, "/holidays"):
 			handleHolidaysAPI(t, w, uri)
+		case strings.HasPrefix(uri, "/businessdays"):
+			handleBusinessDaysAPI(t, w, uri)
 		default:
 			w.WriteHeader(http.StatusNotFound)
 		}
@@ -838,4 +915,17 @@ func handleHolidaysAPI(t *testing.T, w http.ResponseWriter, uri string) {
 	}
 
 	w.WriteHeader(http.StatusNotFound)
+}
+
+func handleBusinessDaysAPI(t *testing.T, w http.ResponseWriter, uri string) {
+	t.Helper()
+
+	switch uri {
+	case "/businessdays/check?date=2023-01-01":
+		if _, err := w.Write(businessDaysResponse); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	default:
+		w.WriteHeader(http.StatusNotFound)
+	}
 }
