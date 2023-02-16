@@ -518,6 +518,7 @@ func TestClient_GetBusinessDays(t *testing.T) {
 		srv.Close()
 	})
 
+	//nolint: maligned
 	cases := map[string]struct {
 		endpoint     string
 		token        string
@@ -527,9 +528,9 @@ func TestClient_GetBusinessDays(t *testing.T) {
 		wantError    any
 		wantResult   bool
 	}{
-		"Normal case":    {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveTime: time.UnixMilli(1672498800000), checkAsError: false, wantError: nil, wantResult: true},
+		"Normal case":    {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveTime: time.UnixMilli(1672531200000), checkAsError: false, wantError: nil, wantResult: true},
 		"Empty case":     {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveTime: time.Time{}, checkAsError: true, wantError: kenall.ErrInvalidArgument, wantResult: false},
-		"Wrong response": {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveTime: time.Time{}.Add(time.Hour), checkAsError: true, wantError: &json.MarshalerError{}, wantResult: false},
+		"Wrong response": {endpoint: srv.URL, token: "opencollector", ctx: context.Background(), giveTime: time.Time{}.Add(24 * time.Hour), checkAsError: true, wantError: &json.MarshalerError{}, wantResult: false},
 		"nil context":    {endpoint: srv.URL, token: "opencollector", ctx: nil, giveTime: time.Now(), checkAsError: true, wantError: &url.Error{}, wantResult: false},
 	}
 
@@ -729,7 +730,7 @@ func ExampleClient_GetBusinessDays() {
 		log.Fatal(err)
 	}
 
-	res, err := cli.GetBusinessDays(context.Background(), time.UnixMilli(946652400000)) // 2000-01-01
+	res, err := cli.GetBusinessDays(context.Background(), time.UnixMilli(946684800000)) // 2000-01-01
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -923,6 +924,10 @@ func handleBusinessDaysAPI(t *testing.T, w http.ResponseWriter, uri string) {
 	switch uri {
 	case "/businessdays/check?date=2023-01-01":
 		if _, err := w.Write(businessDaysResponse); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	case "/businessdays/check?date=0001-01-02":
+		if _, err := w.Write([]byte(`{"result": "worng"}`)); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 	default:
