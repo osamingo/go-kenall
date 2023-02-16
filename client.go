@@ -267,7 +267,8 @@ func (cli *Client) GetBusinessDays(ctx context.Context, date time.Time) (*GetBus
 		return nil, ErrInvalidArgument
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+"/businessdays/check?date="+date.Format(RFC3339DateFormat), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet,
+		cli.Endpoint+"/businessdays/check?date="+date.Format(RFC3339DateFormat), nil)
 	if err != nil {
 		return nil, fmt.Errorf(errFailedGenerateRequestFormat, err)
 	}
