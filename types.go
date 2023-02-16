@@ -113,7 +113,7 @@ type (
 	}
 	// A Holiday is Japan's holiday detail.
 	Holiday struct {
-		Title string
+		Title string `json:"title,omitempty"`
 		time.Time
 	}
 	// A Query is data normalized to an address.
@@ -142,8 +142,10 @@ var (
 	_ json.Unmarshaler = (*NullString)(nil)
 	_ json.Unmarshaler = (*RemoteAddress)(nil)
 	_ json.Unmarshaler = (*Holiday)(nil)
+	_ json.Unmarshaler = (*BusinessDay)(nil)
 
 	_ json.Marshaler = (*Holiday)(nil)
+	_ json.Marshaler = (*BusinessDay)(nil)
 
 	_ net.Addr = (*RemoteAddress)(nil)
 )
