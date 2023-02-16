@@ -116,6 +116,11 @@ type (
 		Title string `json:"title,omitempty"`
 		time.Time
 	}
+	// A BusinessDay is Japan's business detail.
+	BusinessDay struct {
+		LegalHoliday bool `json:"is_legal_holiday"`
+		time.Time
+	}
 	// A Query is data normalized to an address.
 	Query struct {
 		Q           NullString `json:"q"`
