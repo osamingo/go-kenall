@@ -19,6 +19,9 @@ const (
 	Endpoint = "https://api.kenall.jp/v1"
 	// RFC3339DateFormat is the RFC3339-Date format for Go.
 	RFC3339DateFormat = "2006-01-02"
+
+	errFailedGenerateRequestFormat = "kenall: failed to generate an http request: %w"
+	errFailedRequestFormat         = "kenall: failed to send a request for kenall service: %w"
 )
 
 type (
@@ -110,12 +113,12 @@ func (cli *Client) GetAddress(ctx context.Context, postalCode string) (*GetAddre
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+"/postalcode/"+postalCode, nil)
 	if err != nil {
-		return nil, fmt.Errorf("kenall: failed to generate http request: %w", err)
+		return nil, fmt.Errorf(errFailedGenerateRequestFormat, err)
 	}
 
 	var res GetAddressResponse
 	if err := cli.sendRequest(req, &res); err != nil {
-		return nil, fmt.Errorf("kenall: failed to send request for kenall service: %w", err)
+		return nil, fmt.Errorf(errFailedRequestFormat, err)
 	}
 
 	return &res, nil
@@ -135,12 +138,12 @@ func (cli *Client) GetCity(ctx context.Context, prefectureCode string) (*GetCity
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+"/cities/"+prefectureCode, nil)
 	if err != nil {
-		return nil, fmt.Errorf("kenall: failed to generate http request: %w", err)
+		return nil, fmt.Errorf(errFailedGenerateRequestFormat, err)
 	}
 
 	var res GetCityResponse
 	if err := cli.sendRequest(req, &res); err != nil {
-		return nil, fmt.Errorf("kenall: failed to send request for kenall service: %w", err)
+		return nil, fmt.Errorf(errFailedRequestFormat, err)
 	}
 
 	return &res, nil
@@ -161,12 +164,12 @@ func (cli *Client) GetCorporation(ctx context.Context, corporateNumber string) (
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+"/houjinbangou/"+corporateNumber, nil)
 	if err != nil {
-		return nil, fmt.Errorf("kenall: failed to generate http request: %w", err)
+		return nil, fmt.Errorf(errFailedGenerateRequestFormat, err)
 	}
 
 	var res GetCorporationResponse
 	if err := cli.sendRequest(req, &res); err != nil {
-		return nil, fmt.Errorf("kenall: failed to send request for kenall service: %w", err)
+		return nil, fmt.Errorf(errFailedRequestFormat, err)
 	}
 
 	return &res, nil
@@ -181,12 +184,12 @@ type GetWhoamiResponse struct {
 func (cli *Client) GetWhoami(ctx context.Context) (*GetWhoamiResponse, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+"/whoami", nil)
 	if err != nil {
-		return nil, fmt.Errorf("kenall: failed to generate http request: %w", err)
+		return nil, fmt.Errorf(errFailedGenerateRequestFormat, err)
 	}
 
 	var res GetWhoamiResponse
 	if err := cli.sendRequest(req, &res); err != nil {
-		return nil, fmt.Errorf("kenall: failed to send request for kenall service: %w", err)
+		return nil, fmt.Errorf(errFailedRequestFormat, err)
 	}
 
 	return &res, nil
@@ -200,12 +203,12 @@ type GetHolidaysResponse struct {
 func (cli *Client) getHolidays(ctx context.Context, v url.Values) (*GetHolidaysResponse, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+"/holidays?"+v.Encode(), nil)
 	if err != nil {
-		return nil, fmt.Errorf("kenall: failed to generate http request: %w", err)
+		return nil, fmt.Errorf(errFailedGenerateRequestFormat, err)
 	}
 
 	var res GetHolidaysResponse
 	if err := cli.sendRequest(req, &res); err != nil {
-		return nil, fmt.Errorf("kenall: failed to send request for kenall service: %w", err)
+		return nil, fmt.Errorf(errFailedRequestFormat, err)
 	}
 
 	return &res, nil
@@ -244,12 +247,12 @@ func (cli *Client) GetNormalizeAddress(ctx context.Context, address string) (*Ge
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cli.Endpoint+"/postalcode/?t="+address, nil)
 	if err != nil {
-		return nil, fmt.Errorf("kenall: failed to generate http request: %w", err)
+		return nil, fmt.Errorf(errFailedGenerateRequestFormat, err)
 	}
 
 	var res GetNormalizeAddressResponse
 	if err := cli.sendRequest(req, &res); err != nil {
-		return nil, fmt.Errorf("kenall: failed to send request for kenall service: %w", err)
+		return nil, fmt.Errorf(errFailedRequestFormat, err)
 	}
 
 	return &res, nil
