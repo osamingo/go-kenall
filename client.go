@@ -258,10 +258,12 @@ func (cli *Client) GetNormalizeAddress(ctx context.Context, address string) (*Ge
 	return &res, nil
 }
 
+// A GetBusinessDaysResponse is a result from the kenall service of the API to get the business days.
 type GetBusinessDaysResponse struct {
 	BusinessDay *BusinessDay
 }
 
+// GetBusinessDays requests to the kenall service to get business days by a date.
 func (cli *Client) GetBusinessDays(ctx context.Context, date time.Time) (*GetBusinessDaysResponse, error) {
 	if date.IsZero() {
 		return nil, ErrInvalidArgument
