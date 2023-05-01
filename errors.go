@@ -21,5 +21,5 @@ var (
 	// ErrInternalServerError is an error value that will be returned when some error occurs in the kenall service.
 	ErrInternalServerError = errors.New("kenall: 500 internal server error")
 	// ErrTimeout is an error value that will be returned when the request is timeout.
-	ErrTimeout = func(err error) error { return fmt.Errorf("kenall: request timeout: %w", err) }
+	ErrTimeout = func(err error) error { return fmt.Errorf("kenall: request timeout: %w", err) } //nolint: gochecknoglobals
 )
