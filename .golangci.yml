@@ -1,8 +1,9 @@
 linters-settings:
   errcheck:
-    check-type-asserts: true
+    check-type-assertions: true
     check-blank: true
-    ignore: io:^Copy.*
+    exclude-functions:
+      - io.Copy
   misspell:
     locale: US
   tagliatelle:
@@ -26,7 +27,7 @@ issues:
     - path: _test\.go
       linters:
         - lll
-        - goerr113
+        - err113
         - exhaustivestruct
         - cyclop
         - dupl
@@ -35,3 +36,6 @@ issues:
         - containedctx
         - nosnakecase
         - exhaustruct
+        - depguard
+        - wsl
+        - perfsprint

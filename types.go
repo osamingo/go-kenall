@@ -140,7 +140,7 @@ type (
 var (
 	//nolint: gochecknoglobals
 	nullLiteral = []byte("null")
-	//nolint: gochecknoglobals, gomnd
+	//nolint: gochecknoglobals, mnd
 	jst = time.FixedZone("Asia/Tokyo", 9*60*60)
 
 	_ json.Unmarshaler = (*Version)(nil)
