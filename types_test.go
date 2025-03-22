@@ -22,8 +22,6 @@ func TestVersion_UnmarshalJSON(t *testing.T) {
 	}
 
 	for name, c := range cases {
-		c := c
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -55,8 +53,6 @@ func TestNullString_UnmarshalJSON(t *testing.T) {
 	}
 
 	for name, c := range cases {
-		c := c
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -93,8 +89,6 @@ func TestRemoteAddress_UnmarshalJSON(t *testing.T) {
 	}
 
 	for name, c := range cases {
-		c := c
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -135,8 +129,6 @@ func TestHoliday_UnmarshalJSON(t *testing.T) {
 	}
 
 	for name, c := range cases {
-		c := c
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -175,8 +167,6 @@ func TestHoliday_MarshalJSON(t *testing.T) {
 	}
 
 	for name, c := range cases {
-		c := c
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 

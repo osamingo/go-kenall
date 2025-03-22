@@ -34,6 +34,7 @@ type (
 	}
 	// A ClientOption provides a customize option for kenall.Client.
 	ClientOption interface {
+		//nolint: inamedparam
 		Apply(*Client)
 	}
 )
@@ -275,6 +276,7 @@ func (cli *Client) GetBusinessDays(ctx context.Context, date time.Time) (*GetBus
 		return nil, fmt.Errorf(errFailedGenerateRequestFormat, err)
 	}
 
+	//nolint: exhaustruct
 	res := struct {
 		Result bool `json:"result"`
 	}{}
